@@ -14,13 +14,19 @@ export default function LoggedOutView() {
   const [email, setEmail] = useState("");
   const [passw, setPassw] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = () => {
+    setLoading(true);
     signInWithEmailAndPassword(auth, email, passw)
       .then(() => {
+        setLoading(false);
         login();
       })
-      .catch((error) => setErrorMsg(error.message));
+      .catch((error) => {
+        setLoading(false);
+        setErrorMsg(error.message);
+      });
   };
 
   return (
@@ -45,7 +51,7 @@ export default function LoggedOutView() {
         onChangeText={setPassw}
       />
       <ErrorMessage error={errorMsg} />
-      <Button title="Prijava" onPress={handleLogin} />
+      <Button title={loading ? "Učitavanje..." : "Prijava"} onPress={handleLogin} />
 
       {}
       <View style={styles.signIn}>
