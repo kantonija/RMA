@@ -30,12 +30,14 @@ export default function LoggedOutView() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { padding: width > 600 ? 40 : 20 }]}>
       <View style={[styles.circle, styles.lightpinkCircle]} />
       <View style={[styles.circle, styles.purpleCircle]} />
       <View style={[styles.circle, styles.pinkCircle]} />
 
-      <Text style={styles.title}>Dobrodošli natrag!</Text>
+      <Text style={[styles.title, { fontSize: width > 600 ? 38 : 33 }]}>
+        Dobrodošli{'\n'}natrag!
+      </Text>
 
       <Input
         placeholder="E-mail"
@@ -53,7 +55,6 @@ export default function LoggedOutView() {
       <ErrorMessage error={errorMsg} />
       <Button title={loading ? "Učitavanje..." : "Prijava"} onPress={handleLogin} />
 
-      {}
       <View style={styles.signIn}>
         <Text style={styles.signInText}>Nemate račun?</Text>
         <Button title="Sign up" onPress={() => {}} />
@@ -72,54 +73,51 @@ const styles = StyleSheet.create({
   },
   title: {
     position: "absolute",
-    top: "20%",
-    left: 25,
-    font: "Inconsolata",
-    fontSize: 30,
+    top: "15%",
+    left: "5%",
     fontWeight: "bold",
     color: "#4a148c",
   },
   circle: {
     position: "absolute",
-    borderRadius: 500,
+    borderRadius: 1000, 
   },
   lightpinkCircle: {
-    width: width * 0.82, 
-    height: height * 0.35,
     backgroundColor: "#f6e2ee",
-    top: height * 0.02,
-    left: width * -0.1,
+    width: width * 0.9, 
+    height: width * 0.9, 
+    top: height * 0.01, 
+    left: -width * 0.1, 
   },
   purpleCircle: {
-    width: width * 0.8,
-    height: height * 0.35,
     backgroundColor: "#d6bcfa",
-    top: height * 0.56,
-    left: width * -0.15,
+    width: width * 0.9, 
+    height: width * 0.9, 
+    top: height * 0.5, 
+    left: -width * 0.3,
   },
   pinkCircle: {
-    width: width * 0.85,
-    height: height * 0.40,
-    backgroundColor: "#fdc0C7",
-    top: height * 0.3,
-    left: width * 0.2,
+    backgroundColor: "#fdc0c7",
+    width: width * 0.9, 
+    height: width * 0.9, 
+    top: height * 0.3, 
+    left: width * 0.3,
   },
   inputWithMargin: {
     marginBottom: 20,
+    width: "80%",
   },
   signIn: {
     position: "absolute",
-    bottom: "5%", 
-    flexDirection: "row", 
-    justifyContent: "center", 
-    alignItems: "center", 
+    bottom: "5%",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     width: "100%",
-    paddingHorizontal: 20, 
   },
   signInText: {
     fontWeight: "bold",
     fontSize: 16,
-    marginRight: 10, 
+    marginRight: 10,
   },
 });
-

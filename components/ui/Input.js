@@ -23,7 +23,8 @@ const styles = StyleSheet.create({
       backgroundColor: "#fff", 
       fontSize: 14, 
       marginBottom: 10, 
-      alignSelf: 'center',  
+      alignSelf: 'center', 
+      zIndex:2 
     },
     inputWithMargin: {
       marginBottom: 54, 
