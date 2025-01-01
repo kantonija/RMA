@@ -4,7 +4,7 @@ import Input from "./ui/Input";
 import Button from "./ui/Button";
 import ErrorMessage from "./ui/ErrorMessage";
 import { AuthContext } from "../AuthContext";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebaseConfig";
 
 const { width, height } = Dimensions.get("window");
@@ -15,6 +15,7 @@ export default function LoggedOutView() {
   const [passw, setPassw] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const[isRegistering, setIsRegistering] = useState(false);
 
   const handleLogin = () => {
     setLoading(true);
@@ -27,6 +28,18 @@ export default function LoggedOutView() {
         setLoading(false);
         setErrorMsg(error.message);
       });
+  };
+  const handleRegister = () => {
+    setLoading(true);
+    createUserWithEmailAndPassword(auth, email, passw)
+    .then(() => {
+      setLoading(false);
+      login();
+    })
+    .catch((error) => {
+      setLoading(false);
+      setErrorMsg(error.message);
+    });
   };
 
   return (
@@ -53,11 +66,19 @@ export default function LoggedOutView() {
         onChangeText={setPassw}
       />
       <ErrorMessage error={errorMsg} />
-      <Button title={loading ? "Učitavanje..." : "Prijava"} onPress={handleLogin} />
+      <Button 
+      title={loading ? "Učitavanje..." : isRegistering ? "Registracija" : "Prijava"} 
+      onPress={isRegistering ? handleRegister : handleLogin} 
+      />
 
       <View style={styles.signIn}>
-        <Text style={styles.signInText}>Nemate račun?</Text>
-        <Button title="Sign up" onPress={() => {}} />
+        <Text style={styles.signInText}>
+          {isRegistering ? "Već imate račun?" : "Nemate račun?"}
+          </Text>
+        <Button 
+        title={isRegistering ? "Login" : "Sign up"}
+         onPress={() => setIsRegistering(!isRegistering)}
+          />
       </View>
     </View>
   );
