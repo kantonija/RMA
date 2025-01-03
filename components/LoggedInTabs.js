@@ -5,7 +5,6 @@ import Profil from "./Profil";
 import ListaKnjiga from "./ListaKnjiga";
 import PronadjiKnjiznicu from "./PronadjiKnjiznicu";
 import DodajKnjigu from "./DodajKnjigu";
-import LoggedInView from "./LoggedInView";
 import { createStackNavigator } from "@react-navigation/stack";
 
 const Tab = createBottomTabNavigator();
@@ -43,7 +42,7 @@ export default function LoggedInTabs() {
         },
         })}
       >
-        <Tab.Screen name="Profil" component={LoggedInView} />
+        <Tab.Screen name="Profil" component={Profil} />
         <Tab.Screen name="Lista knjiga" component={ListaKnjiga} />
         <Tab.Screen name="Pronađi knjižnicu" component={PronadjiKnjiznicu} />
         <Tab.Screen name="Dodaj knjigu" component={DodajKnjigu} />

@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     width: 300,
     height: 300,
     position: 'absolute',
-    top: 50,
+    top: 70,
     alignSelf: 'center',
   },
   circle2: {

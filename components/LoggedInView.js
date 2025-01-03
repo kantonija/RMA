@@ -8,16 +8,6 @@ import { auth } from "../firebaseConfig";
 export default function LoggedInView() {
   const { user, logout } = useContext(AuthContext); 
 
-  const handleLogout = () => {
-    signOut(auth)
-      .then(() => {
-        logout();  
-      })
-      .catch((error) => {
-        console.error("Odjava nije uspjela: ", error.message);
-      });
-  };
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Dobrodošli!</Text>
