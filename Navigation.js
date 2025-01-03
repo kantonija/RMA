@@ -8,6 +8,7 @@ import LoggedInTabs from "./components/LoggedInTabs";
 
 const Stack = createStackNavigator();
 
+
 export default Navigation = () => {
     const { isLoggedIn } = useContext(AuthContext);
 

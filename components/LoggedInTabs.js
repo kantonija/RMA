@@ -6,6 +6,7 @@ import ListaKnjiga from "./ListaKnjiga";
 import PronadjiKnjiznicu from "./PronadjiKnjiznicu";
 import DodajKnjigu from "./DodajKnjigu";
 import LoggedInView from "./LoggedInView";
+import { createStackNavigator } from "@react-navigation/stack";
 
 const Tab = createBottomTabNavigator();
 
@@ -33,6 +34,13 @@ export default function LoggedInTabs() {
           tabBarStyle: {
             backgroundColor: '#f3edf7',
           },
+          headerTintColor: '#6c4255', 
+        headerStyle: {
+          backgroundColor: '#f6e2ee',
+        },
+        headerTitleStyle: {
+          fontSize: 18, 
+        },
         })}
       >
         <Tab.Screen name="Profil" component={LoggedInView} />
