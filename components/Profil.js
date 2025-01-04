@@ -4,10 +4,12 @@ import PageDesign from './ui/PageDesign';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 import { AuthContext } from '../AuthContext';
+import { useNavigation } from '@react-navigation/native';
 
 export default function Profil()
 {
   const { user, logout } = useContext(AuthContext);
+  const navigation = useNavigation();
 
   const handleLogout = () => {
     signOut(auth)
@@ -19,10 +21,6 @@ export default function Profil()
       });
   };
 
-  const handleEditProfile = () => {
-  
-  };
-
   return (
     <PageDesign>
       <View style={styles.container}>
@@ -32,7 +30,7 @@ export default function Profil()
         </View>
 
         <View style={styles.bookContainer}>
-          <Text style={styles.bookTitle}>Vaša zadnje dodana knjiga</Text>
+          <Text style={styles.lastBook}>Vaša zadnje dodana knjiga</Text>
           <View style={styles.bookCard}>
             <View style={styles.bookImagePlaceholder} />
             <Text style={styles.bookName}>Vlak u snijegu</Text>
@@ -47,7 +45,7 @@ export default function Profil()
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.circleButton, styles.editProfileButton]}
-          onPress={handleEditProfile}>
+          onPress={() => navigation.navigate('UrediProfil')}>
           <Text style={styles.buttonText}>Uredi profil</Text>
         </TouchableOpacity>
       </View>
@@ -63,17 +61,19 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     position: 'absolute',
-    top: 15,
+    top: 10,
     left: "-48%",
   },
   greetingText: {
     fontSize: 24,
     color: '#6b4c54',
     marginBottom: 10,
+    fontWeight:'bold'
   },
   infoText: {
     fontSize: 16,
     color: '#6b4c54',
+    //fontWeight:'bold'
   },
   bookContainer: {
     alignItems: 'center',
@@ -81,10 +81,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 150,
   },
-  bookTitle: {
+  lastBook: {
     fontSize: 16,
     color: '#6b4c54',
     marginBottom: 10,
+    fontWeight:'bold'
   },
   bookCard: {
     width: 200,
@@ -138,6 +139,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'black',
     textAlign: 'center',
+    fontWeight:'bold'
   },
 });
 
