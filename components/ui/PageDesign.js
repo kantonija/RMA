@@ -1,10 +1,10 @@
 import React, { Children } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-const PageDesign = ({ children }) => {
+const PageDesign = ({ children, showCentralCircle = true }) => {
   return (
     <View style={styles.container}>
-      <View style={styles.circle1} />
+      {showCentralCircle && <View style={styles.circle1} />}    
       <View style={styles.circle2} />
       <View style={styles.circle3} />
       <View style={styles.circle4} />

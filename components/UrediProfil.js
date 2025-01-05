@@ -1,6 +1,9 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Dimensions } from "react-native";
 import PageDesign from "./ui/PageDesign";
+
+const { width} = Dimensions.get("window");
+
 
 export default function UrediProfil() {
   const [najdrazaKnjiga, setNajdrazaKnjiga] = useState("");
@@ -60,8 +63,8 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: "#6c4255",
-    top:-190,
-    left:-95
+    top: width > 600 ? -115 : -190,
+    left: width > 600 ? -650 : -95,
   },
   avatar: {
     flex: 1,
@@ -86,7 +89,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 20,
     alignItems: "center",
-    top:-140,
+    top: width > 600 ? -80 : -140,
     left:10
   },
   buttonText: {
@@ -107,6 +110,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
-    top:-140
+    position: 'relative',
+    top: width > 600 ? -85 : -140
   },
 });

@@ -1,33 +1,14 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import Profil from "./Profil";
 import PronadjiKnjiznicu from "./PronadjiKnjiznicu";
 import DodajKnjigu from "./DodajKnjigu";
-import ListaKnjiga from "./ListaKnjiga";
-import DetaljiKnjige from "./DetaljiKnjige";
 import { createStackNavigator } from "@react-navigation/stack";
 import ProfilStack from "./ProfilStack";
+import KnjigaStack from "./KnjigaStack";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
-
-const ListaKnjigaStack = () => {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name="ListaKnjiga"
-        component={ListaKnjiga}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="DetaljiKnjige"
-        component={DetaljiKnjige}
-        options={{ headerShown: false }}
-      />
-    </Stack.Navigator>
-  );
-};
 
 export default function LoggedInTabs() {
   return (
@@ -63,7 +44,7 @@ export default function LoggedInTabs() {
       })}
     >
       <Tab.Screen name="Profil" component={ProfilStack} />
-      <Tab.Screen name="Lista knjiga" component={ListaKnjigaStack} />
+      <Tab.Screen name="Lista knjiga" component={KnjigaStack} />
       <Tab.Screen name="Pronađi knjižnicu" component={PronadjiKnjiznicu} />
       <Tab.Screen name="Dodaj knjigu" component={DodajKnjigu} />
     </Tab.Navigator>

@@ -1,18 +1,18 @@
-import React from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import React,{useState} from 'react';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, Image } from 'react-native';
 import PageDesign from './ui/PageDesign';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from "@react-navigation/native";
 
-export default function DetaljiKnjige({route})
-{
-  const navigation = useNavigation();
-  const { book } = route.params;
-  const renderImage = book.image ? (
-    <Image source={{ uri: book.image }} style={styles.image} />
-  ) : (
-    <ActivityIndicator size="large" color="#986BFC" style={styles.image} />
-  );
+export default function UrediKnjigu() {
+    const [naslovKnjige, setNaslovKnjige] = useState("");
+    const [autorKnjige, setAutorKnjige] = useState("");
+    const [zanrKnjige, setZanrKnjige] = useState("");
+  
+    const handleSetPhoto = () => {
+    };
+  
+    const handleRemovePhoto = () => {
+    };
   return (
     <PageDesign showCentralCircle={false}>
       <View style={styles.container}>
@@ -26,21 +26,13 @@ export default function DetaljiKnjige({route})
           <Ionicons name="image-outline" size={50} color="black" />
         </View>
 
-        <TextInput
-          style={styles.commentInput}
-          placeholder="Napiši komentar..."
-          multiline
-        />
+        <TouchableOpacity style={styles.button} onPress={handleSetPhoto}>
+        <Text style={styles.buttonText}>Promijeni sliku</Text>
+      </TouchableOpacity>
 
-        <View style={styles.starsContainer}>
-          {Array(5).fill(0).map((_, index) => (
-            <Ionicons key={index} name="star-outline" size={30} color="black" />
-          ))}
-        </View>
-
-        <TouchableOpacity style={styles.editButton}>
-          <Text style={styles.editButtonText} onPress={() => navigation.navigate("UrediKnjigu")}>Uredi podatke o knjizi</Text>
-        </TouchableOpacity>
+      <TouchableOpacity style={[styles.button, { marginTop: 10 }]} onPress={handleRemovePhoto}>
+        <Text style={styles.buttonText}>Ukloni sliku</Text>
+      </TouchableOpacity>
       </View>
     </PageDesign>
   );
@@ -93,14 +85,14 @@ const styles = StyleSheet.create({
     width: '50%',
     marginBottom: 20,
   },
-  editButton: {
+  button: {
     backgroundColor: '#A889E6',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
     marginBottom: 20,
   },
-  editButtonText: {
+  buttonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',

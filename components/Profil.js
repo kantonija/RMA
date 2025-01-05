@@ -1,10 +1,12 @@
 import React, { useContext } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions } from 'react-native';
 import PageDesign from './ui/PageDesign';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 import { AuthContext } from '../AuthContext';
 import { useNavigation } from '@react-navigation/native';
+
+const { width} = Dimensions.get("window");
 
 export default function Profil()
 {
@@ -61,8 +63,8 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     position: 'absolute',
-    top: 10,
-    left: "-48%",
+    top: width > 600 ? 15 : 10,
+    left: width > 600 ? -760 : "-48%",
   },
   greetingText: {
     fontSize: 24,
@@ -73,7 +75,6 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 16,
     color: '#6b4c54',
-    //fontWeight:'bold'
   },
   bookContainer: {
     alignItems: 'center',
