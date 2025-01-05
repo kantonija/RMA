@@ -41,6 +41,10 @@ export default function DetaljiKnjige({route})
         <TouchableOpacity style={styles.editButton}>
           <Text style={styles.editButtonText} onPress={() => navigation.navigate("UrediKnjigu")}>Uredi podatke o knjizi</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity style={styles.editButton}>
+          <Text style={styles.editButtonText} onPress={() => navigation.navigate("Autor")}>O autoru</Text>
+        </TouchableOpacity>
       </View>
     </PageDesign>
   );
