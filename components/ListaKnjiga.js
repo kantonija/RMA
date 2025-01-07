@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import PageDesign2 from './ui/PageDesign2';
+import PageDesign from './ui/PageDesign';
 
 const ListaKnjiga = () => {
   const navigation = useNavigation();
@@ -16,7 +16,7 @@ const ListaKnjiga = () => {
   };
 
   return (
-    <PageDesign2>
+    <PageDesign>
     <View style={styles.container}>
       <Text style={styles.heading}>Lista Knjiga</Text>
       <View style={styles.searchBar}>
@@ -45,7 +45,7 @@ const ListaKnjiga = () => {
         </TouchableOpacity>
       ))}
     </View>
-    </PageDesign2>
+    </PageDesign>
   );
 };
 

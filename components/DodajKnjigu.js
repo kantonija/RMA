@@ -34,7 +34,7 @@ const PronadjiKnjiznicu = () => {
                 borderWidth: 1,
                 justifyContent: "center",
                 alignItems: "center",
-                top: "-13%",
+                marginTop: -30,
                 left: "-18%",	
               }}
             >
@@ -46,7 +46,7 @@ const PronadjiKnjiznicu = () => {
 const styles = StyleSheet.create({
   input1: {
     width: "70%",
-    top: "-10%",
+    marginTop: 130,
     height: 40,
     borderWidth: 1,
     borderColor: "#ccc",
@@ -55,10 +55,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     fontSize: 14,
     zIndex: 3,
+    poisition: "absolute",
   },
   input2: {
     width: "70%",
-    top: "-9%",
+    marginTop: 10,
     height: 40,
     borderWidth: 1,
     borderColor: "#ccc",
@@ -70,7 +71,7 @@ const styles = StyleSheet.create({
   },
   input3: {
     width: "70%",
-    top: "-8%",
+    marginTop: 10,
     height: 40,
     borderWidth: 1,
     borderColor: "#ccc",
@@ -82,7 +83,7 @@ const styles = StyleSheet.create({
   },
   input4: {
     width: "70%",
-    top: "-7%",
+    marginTop: 10,
     height: 40,
     borderWidth: 1,
     borderColor: "#ccc",
@@ -93,8 +94,8 @@ const styles = StyleSheet.create({
     zIndex: 3,
   },
   button: {
-    top: "9%",
-    right: -110,
+    marginTop: 80,
+    right: -125,
     width: "25%",
     height: 60,
     borderColor: "transparent",

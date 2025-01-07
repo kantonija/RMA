@@ -23,11 +23,12 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#faf1f4',
+        position: 'relative',
     },
     content: {
         flex: 1,
         alignItems: 'center',
-        justifyContent: 'center',
+   
     },
   circle1: {
     flex: 1,
