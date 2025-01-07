@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   textContainer: {
     position: 'absolute',
     top: width > 600 ? 15 : 10,
-    left: width > 600 ? -760 : "-48%",
+    left: width > 600 ? -760 : -200,
   },
   greetingText: {
     fontSize: 24,

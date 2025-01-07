@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: "#6c4255",
-    top: width > 600 ? -115 : -190,
+    top: width > 600 ? -115 : 20,
     left: width > 600 ? -650 : -95,
   },
   avatar: {
@@ -73,13 +73,13 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     position: 'absolute',
-    top: -197,
-    right: -95,
+    top: 10,
+    right: -100,
   },
   avatarPlaceholder: {
     color: "#fff",
     fontWeight: "bold",
-    top:40,
+    top:30,
     right:-25
   },
   button: {
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 20,
     alignItems: "center",
-    top: width > 600 ? -80 : -140,
+    top: width > 600 ? -80 : 50,
     left:10
   },
   buttonText: {
@@ -111,6 +111,6 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
     position: 'relative',
-    top: width > 600 ? -85 : -140
+    top: width > 600 ? -85 : 50
   },
 });
