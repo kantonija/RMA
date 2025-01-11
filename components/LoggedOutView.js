@@ -1,53 +1,86 @@
 import React, { useState, useContext } from "react";
-import { View, StyleSheet, Text, Dimensions } from "react-native";
+import { View, StyleSheet, Text, Dimensions, Alert } from "react-native";
 import Input from "./ui/Input";
 import Button from "./ui/Button";
 import ErrorMessage from "./ui/ErrorMessage";
 import AnimatedCircles from "./AnimatedCircles";
 import { AuthContext } from "../AuthContext";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebaseConfig";
+import { auth, firestore } from "../firebaseConfig";
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
 export default function LoggedOutView() {
-  const { login } = useContext(AuthContext);
+  const { login, user } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [passw, setPassw] = useState("");
   const [confirmPassw, setConfirmPassw] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [name, setName] = useState("");
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setLoading(true);
-    signInWithEmailAndPassword(auth, email, passw)
-      .then(() => {
-        setLoading(false);
-        login();
-      })
-      .catch((error) => {
-        setLoading(false);
-        setErrorMsg(error.message);
-      });
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, passw);
+      const user = userCredential.user;
+  
+      console.log("Prijava uspješna!", user); 
+  
+      const docRef = doc(firestore, 'users', user.uid);
+      const docSnap = await getDoc(docRef);
+  
+      if (docSnap.exists()) {
+        const name = docSnap.data().name;
+        console.log("Ime korisnika iz Firestore-a:", name);
+  
+        login(user, name);
+      } else {
+        console.log('Korisnik nije pronađen u bazi.');
+        setErrorMsg('Pogrešno ime ili lozinka.');
+      }
+    } catch (err) {
+      console.error('Greška pri prijavi:', err.message);
+      setErrorMsg('Pogrešno ime ili lozinka.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleRegister = () => {
+
+  const handleRegister = async () => {
     if (passw !== confirmPassw) {
       setErrorMsg("Lozinke se ne podudaraju.");
       return;
     }
+  
+    if (!name) {
+      setErrorMsg("Ime je obavezno.");
+      return;
+    }
+  
     setLoading(true);
-    createUserWithEmailAndPassword(auth, email, passw)
-      .then(() => {
-        setLoading(false);
-        login();
-      })
-      .catch((error) => {
-        setLoading(false);
-        setErrorMsg(error.message);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, passw);
+      const userId = userCredential.user.uid;
+  
+      await setDoc(doc(firestore, "users", userId), {
+        name: name, 
+        email: email,
+        dateJoined: new Date().toISOString(),
       });
+  
+      Alert.alert("Registracija je uspješno dovršena!");
+      login(userCredential.user, name);
+    } catch (error) {
+      setErrorMsg(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
+
 
   return (
     <View style={[styles.container, { padding: width > 600 ? 40 : 20 }]}>
@@ -55,6 +88,15 @@ export default function LoggedOutView() {
 
       <Text style={[styles.title, { fontSize: width > 600 ? 38 : 33 }]}>Dobrodošli{"\n"}{isRegistering ? "Registracija" : "natrag!"}</Text>
 
+      {isRegistering && ( 
+        <Input
+          style={styles.inputWithMargin}
+          placeholder="Ime"
+          value={name}
+          onChangeText={setName}
+        />
+      )}
+          
       <Input
         placeholder="E-mail"
         value={email}
