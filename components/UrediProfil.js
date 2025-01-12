@@ -1,14 +1,48 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Dimensions } from "react-native";
 import PageDesign from "./ui/PageDesign";
+import { app } from '../firebaseConfig';
+import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
+import { auth } from "../firebaseConfig";
+import { Alert } from 'react-native';
 
 const { width} = Dimensions.get("window");
-
+const db = getFirestore(app);
 
 export default function UrediProfil() {
   const [najdrazaKnjiga, setNajdrazaKnjiga] = useState("");
   const [najdraziPisac, setNajdraziPisac] = useState("");
   const [najdraziZanr, setNajdraziZanr] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState({});
+  const [showProfile, setShowProfile] = useState(false);
+  const [isEditable, setIsEditable] = useState(false);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const userId = auth.currentUser.uid;
+        const docRef = doc(db, 'users', userId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          console.log(docSnap.data()); 
+          setProfile({ ...docSnap.data() });
+          setNajdrazaKnjiga(docSnap.data().favBook || '');
+          setNajdraziPisac(docSnap.data().favAuthor || '');
+          setNajdraziZanr(docSnap.data().favGenre || '');
+        } else {
+          console.log("No such document!");
+        }
+      } catch (error) {
+        console.error("Error fetching profile: ", error);
+        Alert.alert("Greška", "Došlo je do greške pri učitavanju vašeg profila.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
 
   const handleSetPhoto = () => {
   };
@@ -16,47 +50,118 @@ export default function UrediProfil() {
   const handleRemovePhoto = () => {
   };
 
+  const handleEditProfile = () => {
+    setShowProfile(!showProfile);
+    setIsEditable(!isEditable);
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      const userId = auth.currentUser.uid;
+      await setDoc(doc(db, 'users', userId), {
+        ...profile,
+        favBook: najdrazaKnjiga,
+        favAuthor: najdraziPisac,
+        favGenre: najdraziZanr,
+      });
+      alert('Vaš profil je uspješno spremljen!');
+      setShowProfile(false);
+    } catch (error) {
+      console.error('Greška pri spremanju profila: ', error);
+      alert('Došlo je do greške pri spremanju vašeg profila.');
+    }
+  };
+      
   return (
-   <PageDesign>
-    <View>
-      <View/>
+    <PageDesign>
+      <View>
 
-      <Text style={styles.title}>Vaši podaci:</Text>
+        <Text style={styles.title}>Vaši podaci:</Text>
 
-      <View style={styles.avatar}>
-        <Text style={styles.avatarPlaceholder}>avatar</Text>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarPlaceholder}>avatar</Text>
+        </View>
+
+        <TouchableOpacity style={styles.button} onPress={handleSetPhoto}>
+          <Text style={styles.buttonText}>Postavi profilnu fotografiju</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.button, { marginTop: 10 }]} onPress={handleRemovePhoto}>
+          <Text style={styles.buttonText}>Ukloni fotografiju</Text>
+        </TouchableOpacity>
+  
+        {showProfile ? (
+          <View>
+            <Text style={{ marginTop: 80, marginBottom: 0 }}>Najdraža knjiga</Text>
+           <TextInput
+            style={[styles.input, {marginTop: -60}]}
+            placeholder="Najdraža knjiga"
+            value={najdrazaKnjiga}
+            editable={true}
+            onChangeText={(value) => {
+              setNajdrazaKnjiga(value);
+              setProfile({ ...profile, favBook: value });
+            }}
+          />
+          <Text style={{ marginTop: 80, marginBottom: 0 }}>Najdraži pisac</Text>
+          <TextInput
+            style={[styles.input, {marginTop: -60}]}
+            placeholder="Najdraži pisac"
+            value={najdraziPisac}
+            editable={true}
+            onChangeText={(value) => {
+              setNajdraziPisac(value);
+              setProfile({ ...profile, favAuthor: value });
+            }}
+          />
+          <Text style={{ marginTop: 80, marginBottom: 0 }}>Najdraži žanr</Text>
+          <TextInput
+            style={[styles.input, {marginTop: -60}]}
+            placeholder="Najdraži žanr"
+            value={najdraziZanr}
+            editable={true}
+            onChangeText={(value) => {
+              setNajdraziZanr(value);
+              setProfile({ ...profile, favGenre: value });
+            }}
+          />
+          </View>
+        ) : (
+          <View>
+            <Text style={{ marginTop: 80, marginBottom: 0 }}>Najdraža knjiga</Text>
+           <TextInput
+            style={[styles.input, {marginTop: -60}]}
+            placeholder="Najdraža knjiga"
+            value={najdrazaKnjiga}
+            editable={false}
+          />
+          <Text style={{ marginTop: 80, marginBottom: 0 }}>Najdraži pisac</Text>
+          <TextInput
+            style={[styles.input, {marginTop: -60}]}
+            placeholder="Najdraži pisac"
+            value={najdraziPisac}
+            editable={false}
+          />
+           <Text style={{ marginTop: 80, marginBottom: 0 }}>Najdraži žanr</Text>
+          <TextInput
+            style={[styles.input, {marginTop: -60}]}
+            placeholder="Najdraži žanr"
+            value={najdraziZanr}
+            editable={false}
+          />
+     
+          </View>
+        )}
+  
+        <br />
+        <TouchableOpacity style={styles.button} onPress={showProfile ? handleSaveProfile : handleEditProfile}>
+          <Text style={styles.buttonText}>{showProfile ? 'Spremi podatke' : 'Uredi podatke'}</Text>
+        </TouchableOpacity>
+
       </View>
-
-      <TouchableOpacity style={styles.button} onPress={handleSetPhoto}>
-        <Text style={styles.buttonText}>Postavi profilnu fotografiju</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={[styles.button, { marginTop: 10 }]} onPress={handleRemovePhoto}>
-        <Text style={styles.buttonText}>Ukloni fotografiju</Text>
-      </TouchableOpacity>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Najdraža knjiga"
-        value={najdrazaKnjiga}
-        onChangeText={setNajdrazaKnjiga}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Najdraži pisac"
-        value={najdraziPisac}
-        onChangeText={setNajdraziPisac}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Najdraži žanr"
-        value={najdraziZanr}
-        onChangeText={setNajdraziZanr}
-      />
-    </View>
     </PageDesign>
   );
-}
+};
 
 const styles = StyleSheet.create({
   title: {
@@ -113,4 +218,11 @@ const styles = StyleSheet.create({
     position: 'relative',
     top: width > 600 ? -85 : 70
   },
+  text: {
+    color: "red",
+    fontSize: 14,
+    fontWeight: "bold",
+    textAlign:'center',
+    zIndex: 5
+  }
 });
