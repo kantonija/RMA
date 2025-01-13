@@ -2,18 +2,35 @@ import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import PageDesign from './ui/PageDesign';
+import { app } from '../firebaseConfig';
+import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import { useState, useEffect } from 'react';
+
+const db = getFirestore(app);
 
 const ListaKnjiga = () => {
   const navigation = useNavigation();
-
-  const books = [
-    { id: 1, title: 'Naslov Knjige 1', author: 'Autor 1', description: 'Opis knjige 1' },
-    { id: 2, title: 'Naslov Knjige 2', author: 'Autor 2', description: 'Opis knjige 2' },
-  ];
+  const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [profile, setProfile] = useState({});
 
   const handleBookPress = (book) => {
     navigation.navigate('DetaljiKnjige', { book });
   };
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        const booksRef = collection(db, 'books');
+        const querySnapshot = await getDocs(booksRef);
+        const booksData = querySnapshot.docs.map(doc => doc.data());
+        setBooks(booksData);
+      } catch (error) {
+        console.error('Error fetching books:', error);
+      }
+    };
+    fetchBooks();
+  }, []);
 
   return (
     <PageDesign>
@@ -28,7 +45,7 @@ const ListaKnjiga = () => {
           <Text style={styles.buttonText}>Traži</Text>
         </TouchableOpacity>
       </View>
-      {books.map((book) => (
+      {books.sort((a, b) => a.title.localeCompare(b.title)).map((book) => (
         <TouchableOpacity
           key={book.id}
           style={styles.bookItem}
