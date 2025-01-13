@@ -13,6 +13,8 @@ export default function UrediKnjigu() {
   
     const handleRemovePhoto = () => {
     };
+    
+
   return (
     <PageDesign showCentralCircle={false}>
       <View style={styles.container}>
@@ -22,6 +24,7 @@ export default function UrediKnjigu() {
         <Text style={styles.info}>Žanr: pustolovni</Text>
         <Text style={styles.info}>Broj stranica: 150</Text>
 
+        
         <View style={styles.imagePlaceholder}>
           <Ionicons name="image-outline" size={50} color="black" />
         </View>
