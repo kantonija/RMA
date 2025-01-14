@@ -1,131 +1,94 @@
-import React from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
-import PageDesign from './ui/PageDesign';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from "@react-navigation/native";
-import { useState } from 'react';
-import { useEffect } from 'react';
-import { auth } from '../firebaseConfig';
-import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
-import { Alert } from 'react-native';
-import { app } from '../firebaseConfig';
+import { doc, getDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { firestore, auth } from '../firebaseConfig';
 import { FaStar } from 'react-icons/fa';
+import PageDesign from './ui/PageDesign';
+import { useNavigation } from '@react-navigation/native';
 
-const db = getFirestore(app);
+const colors = {
+  orange: "#F2C265",
+  grey: "#a9a9a9"
+};
 
-export default function DetaljiKnjige({route})
-{
-  const navigation = useNavigation();
-  const[review, setReview] = useState('')
-  const [profile, setProfile] = useState({ userBooks: { "Vlak u snijegu": {} } });
-  const [loading, setLoading] = useState(true);
-  const [rating, setRating] = useState(0);
-  const [hoverValue, setHoverValue] = useState(undefined)
-  const { book } = route.params;
-  const [isReviewExisting, setIsReviewExisting] = useState(false);
+export default function DetaljiKnjige({ route }) {
   const { bookId } = route.params;
   const [bookDetails, setBookDetails] = useState(null);
+  const [authorId, setAuthorId] = useState(null); // Novo stanje za pohranu authorId
+  const [review, setReview] = useState('');
+  const [rating, setRating] = useState(0);
+  const [hoverValue, setHoverValue] = useState(undefined);
+  const [loading, setLoading] = useState(true);
 
+  const navigation = useNavigation();
 
   useEffect(() => {
     const fetchBookDetails = async () => {
       try {
-        const bookRef = doc(db, 'books', bookId);
+        const bookRef = doc(firestore, 'books', bookId);
         const bookSnap = await getDoc(bookRef);
 
         if (bookSnap.exists()) {
-          setBookDetails(bookSnap.data());
+          const bookData = bookSnap.data();
+          setBookDetails(bookData);
+
+          // Dohvaćanje authorId iz baze autora
+          const authorsRef = collection(firestore, 'authors');
+          const q = query(authorsRef, where('name', '==', bookData.author));
+          const authorSnap = await getDocs(q);
+
+          if (!authorSnap.empty) {
+            const authorDoc = authorSnap.docs[0];
+            setAuthorId(authorDoc.id); // Postavljanje authorId
+          } else {
+            console.warn('Autor nije pronađen u bazi.');
+          }
         } else {
           Alert.alert('Greška', 'Podaci o knjizi nisu pronađeni.');
         }
       } catch (error) {
         console.error('Greška pri dohvaćanju detalja o knjizi: ', error);
         Alert.alert('Greška', 'Došlo je do problema pri dohvaćanju podataka.');
-      } finally {
-        setLoading(false);
       }
     };
 
-    fetchBookDetails();
+    if (bookId) {
+      fetchBookDetails();
+    }
+    setLoading(false);
   }, [bookId]);
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const userId = auth.currentUser.uid;
-        const bookTitle = book.title;
-        const docRef = doc(db, 'users', userId, 'userBooks', bookTitle);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          console.log(docSnap.data());
-          const existingReview = docSnap.data().review;
-          const existingRating = docSnap.data().rating;
-          if (existingReview && existingRating) {
-            setReview(existingReview);
-            setRating(existingRating);
-            setIsReviewExisting(true);
-          } else {
-            setIsReviewExisting(false);
-          }
-        } else {
-          console.log("No such document!");
-          setIsReviewExisting(false);
-        }
-      } catch (error) {
-        console.error("Error fetching profile: ", error);
-        Alert.alert("Greška", "Došlo je do greške pri učitavanju vašeg profila.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProfile();
-  }, []);
 
   const handleSaveReview = async () => {
     try {
       const userId = auth.currentUser.uid;
-      const bookTitle = book.title; // Get the book title from the book object
-      const userBooksRef = doc(db, 'users', userId, 'userBooks', bookTitle);
-      await setDoc(userBooksRef, {
-        review: review,
-        rating: rating,
-      });
-      alert('Vaša recenzija je uspješno spremljena!');
+      const bookRef = doc(firestore, 'users', userId, 'userBooks', bookDetails.title);
+      await setDoc(bookRef, { review, rating });
+      Alert.alert('Uspjeh', 'Vaša recenzija je uspješno spremljena!');
     } catch (error) {
-      console.error('Greška pri spremanju profila: ', error);
-      alert('Došlo je do greške pri spremanju vašeg profila.');
+      console.error('Greška pri spremanju recenzije: ', error);
+      Alert.alert('Greška', 'Došlo je do problema pri spremanju recenzije.');
     }
   };
 
-  const handlePress = (index) => {
-    setRating(index + 1);
-    const newStars = stars.map((star, i) => i <= index);
-    setStars(newStars);
+  const handleMouseOverStar = value => setHoverValue(value);
+  const handleMouseLeaveStar = () => setHoverValue(undefined);
+  const handleClickStar = value => setRating(value);
+
+  const handleAuthorClick = () => {
+    if (authorId && bookDetails.author) {
+      navigation.navigate('UrediAutora', { 
+        authorId,
+        authorName: bookDetails.author 
+      });
+    } else {
+      Alert.alert('Greška', 'Podaci o autoru nisu dostupni.');
+    }
   };
 
-  const handleMouseOverStar = value => {
-    setHoverValue(value)
-};
-
-  const handleMouseLeaveStar = () => {
-      setHoverValue(undefined)
-  };
-
-  const handleClickStar = value => {
-    setRating(value)
-};
-
-const colors = {
-  orange: "#F2C265",
-  grey: "a9a9a9"
-}
-
-  const stars = Array(5).fill(0);
- /* const renderImage = book.image ? (
-    <Image source={{ uri: book.image }} style={styles.image} />
-  ) : (
-    <ActivityIndicator size="large" color="#986BFC" style={styles.image} />
-  );*/
+  if (loading) {
+    return <ActivityIndicator size="large" color="#986BFC" />;
+  }
 
   if (!bookDetails) {
     return (
@@ -138,79 +101,50 @@ const colors = {
   return (
     <PageDesign showCentralCircle={false}>
       <View style={styles.container}>
-      <Image
-          source={
-            bookDetails.coverImage
-              ? { uri: bookDetails.coverImage }
-              : <Ionicons name="image-outline" size={50} color="black" />
-             } style={styles.image}/>        
-        <Text style={styles.title}> {bookDetails.title} </Text>
-        <Text style={styles.author}> {bookDetails.author} </Text>
-        <Text style={styles.info}> {bookDetails.genre} </Text>
+        <Image
+          source={bookDetails.coverImage ? { uri: bookDetails.coverImage } : <Ionicons name="image-outline" size={50} color="black" />}
+          style={styles.image}
+        />
+        <Text style={styles.title}>{bookDetails.title}</Text>
+        <Text style={styles.info}>{bookDetails.genre}</Text>
         <Text style={styles.info}>Broj stranica: {bookDetails.pageCount}</Text>
 
-              {isReviewExisting ? (
-        <View>
-          <Text>Review: {review}</Text>
-          <Text>Rating: {rating}</Text>
-        </View>
-      ) : (
-        <View>
         <TextInput
           style={styles.commentInput}
-          placeholder="Napiši komentar..."
+          placeholder="Napiši recenziju..."
           multiline
-          onChangeText={(value) => {
-            setReview(value);
-            if (profile.userBooks && profile.userBooks["Vlak u snijegu"]) {
-              setProfile({
-                ...profile,
-                userBooks: {
-                  ...profile.userBooks,
-                  "Vlak u snijegu": {
-                    ...profile.userBooks["Vlak u snijegu"],
-                    review: value,
-                  },
-                },
-              });
-            }
-          }}
+          value={review}
+          onChangeText={(text) => setReview(text)}
         />
 
-        <div>
-            {stars.map((_, index) => {
-                  return (
-                      <FaStar
-                          key={index}
-                          size={24}
-                          value={rating}
-                          onChange={(e) => setRating(e.target.value)}
-                          color={(hoverValue || rating) > index ? colors.orange : colors.grey}
-                          onClick={() => handleClickStar(index + 1)}
-                          onMouseOver={() => handleMouseOverStar(index + 1)}
-                          onMouseLeave={() => handleMouseLeaveStar}
-                        />
-                  )
-              })}
-          </div>
-          <br />
-              <TouchableOpacity style={styles.editButton} onPress={handleSaveReview}>
-              <Text style={styles.editButtonText}>Spremi recenziju</Text>
-            </TouchableOpacity>
-          </View>
-          )}
-        <br />
-        <TouchableOpacity style={styles.editButton}>
-          <Text style={styles.editButtonText} onPress={() => navigation.navigate("UrediKnjigu")}>Uredi podatke o knjizi</Text>
+        <View style={styles.starsContainer}>
+          {Array(5).fill(0).map((_, index) => (
+            <FaStar
+              key={index}
+              size={24}
+              color={(hoverValue || rating) > index ? colors.orange : colors.grey}
+              onClick={() => handleClickStar(index + 1)}
+              onMouseOver={() => handleMouseOverStar(index + 1)}
+              onMouseLeave={handleMouseLeaveStar}
+            />
+          ))}
+        </View>
+
+        <TouchableOpacity style={styles.editButton} onPress={handleAuthorClick}>
+          <Text style={styles.editButtonText}>{bookDetails.author}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.editButton}>
-          <Text style={styles.editButtonText} onPress={() => navigation.navigate("Autor")}>O autoru</Text>
+        <TouchableOpacity style={styles.editButton} onPress={handleSaveReview}>
+          <Text style={styles.editButtonText}>Spremi recenziju</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('UrediKnjigu', { bookId })}>
+          <Text style={styles.editButtonText}>Uredi podatke o knjizi</Text>
         </TouchableOpacity>
       </View>
     </PageDesign>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -218,36 +152,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
+  image: {
+    width: 150,
+    height: 150,
+    marginBottom: 20,
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#5D5D5D',
-    marginTop: 20,
   },
   author: {
     fontSize: 18,
-    color: '#5D5D5D',
     marginBottom: 10,
+    color: '#0066cc',
   },
   info: {
     fontSize: 16,
-    color: '#5D5D5D',
-  },
-  imagePlaceholder: {
-    width: 100,
-    height: 100,
-    backgroundColor: '#F0F0F0',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 20,
-    borderRadius: 10,
+    marginBottom: 10,
   },
   commentInput: {
     width: '90%',
     height: 80,
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#D3D3D3',
     borderRadius: 10,
     padding: 10,
     textAlignVertical: 'top',
@@ -255,28 +181,23 @@ const styles = StyleSheet.create({
   },
   starsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '50%',
+    justifyContent: 'center',
     marginBottom: 20,
   },
   editButton: {
     backgroundColor: '#A889E6',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    padding: 10,
     borderRadius: 10,
-    marginBottom: 20,
+    marginBottom: 10,
   },
   editButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },
-  navigationBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    borderTopWidth: 1,
-    borderColor: '#D3D3D3',
-    paddingVertical: 10,
+  errorText: {
+    textAlign: 'center',
+    color: 'red',
+    fontSize: 16,
   },
 });

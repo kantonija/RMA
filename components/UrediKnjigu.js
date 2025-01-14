@@ -1,111 +1,154 @@
-import React,{useState} from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, Image } from 'react-native';
-import PageDesign from './ui/PageDesign';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useState, useEffect } from "react";
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert, Image } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { firestore } from "../firebaseConfig"; 
+import PageDesign from "./ui/PageDesign";
 
-export default function UrediKnjigu() {
-    const [naslovKnjige, setNaslovKnjige] = useState("");
-    const [autorKnjige, setAutorKnjige] = useState("");
-    const [zanrKnjige, setZanrKnjige] = useState("");
-  
-    const handleSetPhoto = () => {
-    };
-  
-    const handleRemovePhoto = () => {
-    };
-    
+export default function UrediKnjigu({ route, navigation }) {
+  const { bookId } = route.params; 
+
+  const [naslovKnjige, setNaslovKnjige] = useState("");
+  const [autorKnjige, setAutorKnjige] = useState("");
+  const [zanrKnjige, setZanrKnjige] = useState("");
+  const [brojStranica, setBrojStranica] = useState("");
+  const [coverImage, setCoverImage] = useState("");
+
+
+  const fetchBookData = async () => {
+    try {
+      const bookRef = doc(firestore, "books", bookId);
+      const bookSnap = await getDoc(bookRef);
+
+      if (bookSnap.exists()) {
+        const bookData = bookSnap.data();
+        setNaslovKnjige(bookData.title);
+        setAutorKnjige(bookData.author);
+        setZanrKnjige(bookData.genre);
+        setBrojStranica(bookData.pageCount);
+        setCoverImage(bookData.coverImage || ""); 
+      } else {
+        Alert.alert("Greška", "Podaci o knjizi nisu pronađeni.");
+        navigation.goBack();
+      }
+    } catch (error) {
+      console.error("Greška pri dohvaćanju podataka o knjizi:", error);
+      Alert.alert("Greška", "Nije moguće dohvatiti podatke o knjizi.");
+    }
+  };
+
+  const handleUpdateBook = async () => {
+    if (!naslovKnjige || !autorKnjige || !zanrKnjige || !brojStranica) {
+      Alert.alert("Greška", "Molimo popunite sva polja.");
+      return;
+    }
+
+    try {
+      const bookRef = doc(firestore, "books", bookId);
+      await updateDoc(bookRef, {
+        title: naslovKnjige,
+        author: autorKnjige,
+        genre: zanrKnjige,
+        pageCount: brojStranica,
+        coverImage: coverImage,
+      });
+
+      Alert.alert("Uspjeh", "Podaci o knjizi su uspješno ažurirani.");
+      navigation.goBack(); 
+    } catch (error) {
+      console.error("Greška pri ažuriranju knjige:", error);
+      Alert.alert("Greška", "Nije moguće ažurirati knjigu. Pokušajte ponovo.");
+    }
+  };
+
+  useEffect(() => {
+    fetchBookData();
+  }, []);
 
   return (
     <PageDesign showCentralCircle={false}>
       <View style={styles.container}>
-        <Text style={styles.title}>Vlak u snijegu</Text>
-        <Text style={styles.author}>Mato Lovrak</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Naslov knjige"
+          value={naslovKnjige}
+          onChangeText={(text) => setNaslovKnjige(text)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Autor knjige"
+          value={autorKnjige}
+          onChangeText={(text) => setAutorKnjige(text)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Žanr knjige"
+          value={zanrKnjige}
+          onChangeText={(text) => setZanrKnjige(text)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Broj stranica"
+          value={brojStranica}
+          keyboardType="numeric"
+          onChangeText={(text) => setBrojStranica(text)}
+        />
 
-        <Text style={styles.info}>Žanr: pustolovni</Text>
-        <Text style={styles.info}>Broj stranica: 150</Text>
-
-        
         <View style={styles.imagePlaceholder}>
-          <Ionicons name="image-outline" size={50} color="black" />
+          {coverImage ? (
+            <Image source={{ uri: coverImage }} style={styles.image} />
+          ) : (
+            <Ionicons name="image-outline" size={50} color="black" />
+          )}
         </View>
 
-        <TouchableOpacity style={styles.button} onPress={handleSetPhoto}>
-        <Text style={styles.buttonText}>Promijeni sliku</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={[styles.button, { marginTop: 10 }]} onPress={handleRemovePhoto}>
-        <Text style={styles.buttonText}>Ukloni sliku</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleUpdateBook}>
+          <Text style={styles.buttonText}>Spremi promjene</Text>
+        </TouchableOpacity>
       </View>
     </PageDesign>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     padding: 20,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#5D5D5D',
-    marginTop: 20,
-  },
-  author: {
-    fontSize: 18,
-    color: '#5D5D5D',
-    marginBottom: 10,
-  },
-  info: {
-    fontSize: 16,
-    color: '#5D5D5D',
-  },
-  imagePlaceholder: {
-    width: 100,
-    height: 100,
-    backgroundColor: '#F0F0F0',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 20,
-    borderRadius: 10,
-  },
-  commentInput: {
-    width: '90%',
-    height: 80,
-    backgroundColor: '#FFFFFF',
+  input: {
+    width: "90%",
+    height: 40,
     borderWidth: 1,
-    borderColor: '#D3D3D3',
+    borderColor: "#D3D3D3",
     borderRadius: 10,
     padding: 10,
-    textAlignVertical: 'top',
-    marginBottom: 20,
+    marginBottom: 15,
+    backgroundColor: "#FFFFFF",
   },
-  starsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '50%',
-    marginBottom: 20,
+  imagePlaceholder: {
+    width: 120,
+    height: 120,
+    backgroundColor: "#F0F0F0",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 10,
+    marginVertical: 20,
+  },
+  image: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 10,
   },
   button: {
-    backgroundColor: '#A889E6',
+    backgroundColor: "#A889E6",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
-    marginBottom: 20,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: 'bold',
-  },
-  navigationBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    borderTopWidth: 1,
-    borderColor: '#D3D3D3',
-    paddingVertical: 10,
+    fontWeight: "bold",
   },
 });

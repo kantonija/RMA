@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from "react-native";
-import { collection, setDoc, doc, getDocs, query, orderBy } from "firebase/firestore";
+import { collection, setDoc, doc, getDocs, query, orderBy, where } from "firebase/firestore";
 import { firestore } from "../firebaseConfig"; 
 import PageDesign from "./ui/PageDesign";
 import { AuthContext } from "../AuthContext";
@@ -11,9 +11,10 @@ const DodajKnjigu = () => {
   const [pageCount, setPageCount] = useState("");
   const [genre, setGenre] = useState("");
   const [nextBookId, setNextBookId] = useState("");
+  const [nextAuthorId, setNextAuthorId] = useState(""); 
   const { user } = useContext(AuthContext); 
 
-  
+
   const fetchNextBookId = async () => {
     try {
       const booksRef = collection(firestore, "books");
@@ -33,15 +34,62 @@ const DodajKnjigu = () => {
     }
   };
 
-  
-  useEffect(() => {
-    fetchNextBookId();
-  }, []);
+ 
+  const fetchNextAuthorId = async () => {
+    try {
+      const authorsRef = collection(firestore, "authors");
+      const q = query(authorsRef, orderBy("id", "desc"));
+      const querySnapshot = await getDocs(q);
 
+      if (!querySnapshot.empty) {
+        const lastAuthor = querySnapshot.docs[0].data(); 
+        const lastId = parseInt(lastAuthor.id.replace("author", ""), 10); 
+        setNextAuthorId(`author${lastId + 1}`); 
+      } else {
+        setNextAuthorId("author1"); 
+      }
+    } catch (error) {
+      console.error("Greška pri dohvaćanju ID-a autora:", error);
+      setNextAuthorId("author1");
+    }
+  };
+
+ 
+  const checkAuthorExists = async (authorName) => {
+    const authorsRef = collection(firestore, "authors");
+    const q = query(authorsRef, where("name", "==", authorName));
+    const querySnapshot = await getDocs(q);
+
+    return !querySnapshot.empty; 
+  };
+
+  
+  const addAuthor = async () => {
+    try {
+      const authorRef = doc(firestore, "authors", nextAuthorId);
+      await setDoc(authorRef, {
+        id: nextAuthorId,
+        name: author,  
+        bio: "", 
+      });
+      console.log("Autor je uspješno dodan!");
+    } catch (error) {
+      Alert.alert("Greška", "Dodavanje autora nije uspjelo. Pokušajte ponovo.");
+      console.error("Greška pri dodavanju autora:", error);
+    }
+  };
+
+  
   const handleAddBook = async () => {
     if (!title || !author || !pageCount || !genre) {
       Alert.alert("Greška", "Molimo popunite sva polja.");
       return;
+    }
+
+    const authorExists = await checkAuthorExists(author); 
+
+    if (!authorExists) {
+      await addAuthor();
     }
 
     try {
@@ -69,6 +117,11 @@ const DodajKnjigu = () => {
       console.error("Greška pri dodavanju knjige:", error);
     }
   };
+
+  useEffect(() => {
+    fetchNextBookId();
+    fetchNextAuthorId();
+  }, []);
 
   return (
     <PageDesign>
