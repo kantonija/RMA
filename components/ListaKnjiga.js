@@ -15,7 +15,7 @@ const ListaKnjiga = () => {
   const [profile, setProfile] = useState({});
 
   const handleBookPress = (book) => {
-    navigation.navigate('DetaljiKnjige', { book });
+    navigation.navigate('DetaljiKnjige', { bookId: book.id });
   };
 
   useEffect(() => {
@@ -23,7 +23,7 @@ const ListaKnjiga = () => {
       try {
         const booksRef = collection(db, 'books');
         const querySnapshot = await getDocs(booksRef);
-        const booksData = querySnapshot.docs.map(doc => doc.data());
+        const booksData = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
         setBooks(booksData);
       } catch (error) {
         console.error('Error fetching books:', error);

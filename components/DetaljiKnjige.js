@@ -23,6 +23,31 @@ export default function DetaljiKnjige({route})
   const [hoverValue, setHoverValue] = useState(undefined)
   const { book } = route.params;
   const [isReviewExisting, setIsReviewExisting] = useState(false);
+  const { bookId } = route.params;
+  const [bookDetails, setBookDetails] = useState(null);
+
+
+  useEffect(() => {
+    const fetchBookDetails = async () => {
+      try {
+        const bookRef = doc(db, 'books', bookId);
+        const bookSnap = await getDoc(bookRef);
+
+        if (bookSnap.exists()) {
+          setBookDetails(bookSnap.data());
+        } else {
+          Alert.alert('Greška', 'Podaci o knjizi nisu pronađeni.');
+        }
+      } catch (error) {
+        console.error('Greška pri dohvaćanju detalja o knjizi: ', error);
+        Alert.alert('Greška', 'Došlo je do problema pri dohvaćanju podataka.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBookDetails();
+  }, [bookId]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -96,25 +121,33 @@ const colors = {
 }
 
   const stars = Array(5).fill(0);
-  const renderImage = book.image ? (
+ /* const renderImage = book.image ? (
     <Image source={{ uri: book.image }} style={styles.image} />
   ) : (
     <ActivityIndicator size="large" color="#986BFC" style={styles.image} />
-  );
+  );*/
+
+  if (!bookDetails) {
+    return (
+      <PageDesign>
+        <Text style={styles.errorText}>Podaci o knjizi nisu dostupni ili nedostaju.</Text>
+      </PageDesign>
+    );
+  }
+
   return (
     <PageDesign showCentralCircle={false}>
       <View style={styles.container}>
-        <Text style={styles.title}>Vlak u snijegu</Text>
-        <Text style={styles.author}>Mato Lovrak</Text>
-
-        <Text style={styles.info}>Žanr: pustolovni</Text>
-        <Text style={styles.info}>Broj stranica: 150</Text>
-
-
-
-        <View style={styles.imagePlaceholder}>
-          <Ionicons name="image-outline" size={50} color="black" />
-        </View>
+      <Image
+          source={
+            bookDetails.coverImage
+              ? { uri: bookDetails.coverImage }
+              : <Ionicons name="image-outline" size={50} color="black" />
+             } style={styles.image}/>        
+        <Text style={styles.title}> {bookDetails.title} </Text>
+        <Text style={styles.author}> {bookDetails.author} </Text>
+        <Text style={styles.info}> {bookDetails.genre} </Text>
+        <Text style={styles.info}>Broj stranica: {bookDetails.pageCount}</Text>
 
               {isReviewExisting ? (
         <View>
