@@ -15,7 +15,7 @@ const colors = {
 export default function DetaljiKnjige({ route }) {
   const { bookId } = route.params;
   const [bookDetails, setBookDetails] = useState(null);
-  const [authorId, setAuthorId] = useState(null); // Novo stanje za pohranu authorId
+  const [authorId, setAuthorId] = useState(null); 
   const [review, setReview] = useState('');
   const [rating, setRating] = useState(0);
   const [hoverValue, setHoverValue] = useState(undefined);
@@ -33,14 +33,13 @@ export default function DetaljiKnjige({ route }) {
           const bookData = bookSnap.data();
           setBookDetails(bookData);
 
-          // Dohvaćanje authorId iz baze autora
           const authorsRef = collection(firestore, 'authors');
           const q = query(authorsRef, where('name', '==', bookData.author));
           const authorSnap = await getDocs(q);
 
           if (!authorSnap.empty) {
             const authorDoc = authorSnap.docs[0];
-            setAuthorId(authorDoc.id); // Postavljanje authorId
+            setAuthorId(authorDoc.id); 
           } else {
             console.warn('Autor nije pronađen u bazi.');
           }

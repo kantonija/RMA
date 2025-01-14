@@ -1,10 +1,9 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import PageDesign from './ui/PageDesign';
 import { app } from '../firebaseConfig';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
-import { useState, useEffect } from 'react';
 
 const db = getFirestore(app);
 
@@ -12,7 +11,6 @@ const ListaKnjiga = () => {
   const navigation = useNavigation();
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [profile, setProfile] = useState({});
 
   const handleBookPress = (book) => {
     navigation.navigate('DetaljiKnjige', { bookId: book.id });
@@ -34,34 +32,37 @@ const ListaKnjiga = () => {
 
   return (
     <PageDesign>
-    <View style={styles.container}>
-      <Text style={styles.heading}>Lista Knjiga</Text>
-      <View style={styles.searchBar}>
-        <TextInput
-          style={styles.input}
-          placeholder="Pretraži knjige..."
-        />
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Traži</Text>
-        </TouchableOpacity>
-      </View>
-      {books.sort((a, b) => a.title.localeCompare(b.title)).map((book) => (
-        <TouchableOpacity
-          key={book.id}
-          style={styles.bookItem}
-          onPress={() => handleBookPress(book)}
-        >
-          <Image
-            source={{ uri: 'https://via.placeholder.com/150' }}
-            style={styles.bookImage}
+      <View style={styles.container}>
+        <Text style={styles.heading}>Lista Knjiga</Text>
+        <View style={styles.searchBar}>
+          <TextInput
+            style={styles.input}
+            placeholder="Pretraži knjige..."
           />
-          <View>
-            <Text style={styles.bookTitle}>{book.title}</Text>
-            <Text style={styles.bookAuthor}>Autor: {book.author}</Text>
-          </View>
-        </TouchableOpacity>
-      ))}
-    </View>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Traži</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView contentContainerStyle={styles.bookList}>
+          {books.sort((a, b) => a.title.localeCompare(b.title)).map((book) => (
+            <TouchableOpacity
+              key={book.id}
+              style={styles.bookItem}
+              onPress={() => handleBookPress(book)}
+            >
+              <Image
+                source={{ uri: 'https://via.placeholder.com/150' }}
+                style={styles.bookImage}
+              />
+              <View>
+                <Text style={styles.bookTitle}>{book.title}</Text>
+                <Text style={styles.bookAuthor}>Autor: {book.author}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
     </PageDesign>
   );
 };
@@ -98,6 +99,9 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'white',
     fontWeight: 'bold',
+  },
+  bookList: {
+    paddingBottom: 20, 
   },
   bookItem: {
     flexDirection: 'row',
