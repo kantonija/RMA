@@ -6,9 +6,9 @@ import { auth } from '../firebaseConfig';
 import { AuthContext } from '../AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { firestore } from '../firebaseConfig';
-import { collection, getDocs, orderBy, query, limit, where, Timestamp } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, orderBy, query, limit, where, Timestamp, setDoc, updateDoc } from 'firebase/firestore';
 
-const { width} = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
 export default function Profil() {
   const { user, logout } = useContext(AuthContext);
@@ -62,9 +62,10 @@ export default function Profil() {
         console.error('Error fetching last added book:', error);
       }
     };
-
     const fetchActivityTime = async () => {
       try {
+        if (!user) return;
+
         const currentDate = new Date();
         const lastWeekDate = new Date(currentDate);
         lastWeekDate.setDate(currentDate.getDate() - 7);
@@ -88,7 +89,6 @@ export default function Profil() {
         querySnapshot.forEach(doc => {
           const activity = doc.data();
           
-          
           if (activity.startTime && activity.endTime) {
             const startTime = activity.startTime.toDate();
             const endTime = activity.endTime.toDate();
@@ -104,22 +104,45 @@ export default function Profil() {
         console.error('Error fetching activity time:', error);
       }
     };
-    
 
     fetchProfile();
     fetchLastBook();
     fetchActivityTime();
   }, [user]);
 
-  const handleLogout = () => {
-    signOut(auth)
-      .then(() => {
-        logout();
-      })
-      .catch((error) => {
-        console.error('Odjava nije uspjela: ', error.message);
-      });
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      logout(); 
+      navigation.navigate('Login'); 
+    } catch (error) {
+      console.error('Logout error:', error);
+      Alert.alert("Greška", "Došlo je do greške pri odjavi.");
+    }
   };
+
+  const createActivity = async () => {
+    try {
+      const activitiesRef = collection(firestore, 'activities');
+      const activitiesSnapshot = await getDocs(activitiesRef);
+      const activityCount = activitiesSnapshot.size;
+      const newActivityId = `activity${activityCount + 1}`;
+
+      const newActivity = {
+        userId: user.uid,
+        startTime: Timestamp.fromDate(new Date()),
+        endTime: null,
+        activityId: newActivityId,
+      };
+
+      const docRef = doc(activitiesRef, newActivityId);
+      await setDoc(docRef, newActivity);
+      console.log('New activity created:', newActivityId);
+    } catch (error) {
+      console.error('Error creating activity:', error);
+    }
+  };
+
 
   return (
     <PageDesign>

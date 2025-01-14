@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, Image, Alert, ActivityIndicator, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { doc, getDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { firestore, auth } from '../firebaseConfig';
 import { FaStar } from 'react-icons/fa';
 import PageDesign from './ui/PageDesign';
@@ -20,7 +20,6 @@ export default function DetaljiKnjige({ route }) {
   const [rating, setRating] = useState(0);
   const [hoverValue, setHoverValue] = useState(undefined);
   const [loading, setLoading] = useState(true);
-
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -85,6 +84,18 @@ export default function DetaljiKnjige({ route }) {
     }
   };
 
+  const handleDeleteBook = async () => {
+    try {
+      const bookRef = doc(firestore, 'books', bookId);
+      await deleteDoc(bookRef);
+      Alert.alert('Uspjeh', 'Knjiga je uspješno obrisana.');
+      navigation.goBack(); 
+    } catch (error) {
+      console.error('Greška pri brisanju knjige: ', error);
+      Alert.alert('Greška', 'Došlo je do problema pri brisanju knjige.');
+    }
+  };
+
   if (loading) {
     return <ActivityIndicator size="large" color="#986BFC" />;
   }
@@ -99,57 +110,64 @@ export default function DetaljiKnjige({ route }) {
 
   return (
     <PageDesign showCentralCircle={false}>
-      <View style={styles.container}>
-        <Image
-          source={bookDetails.coverImage ? { uri: bookDetails.coverImage } : <Ionicons name="image-outline" size={50} color="black" />}
-          style={styles.image}
-        />
-        <Text style={styles.title}>{bookDetails.title}</Text>
-        <Text style={styles.info}>{bookDetails.genre}</Text>
-        <Text style={styles.info}>Broj stranica: {bookDetails.pageCount}</Text>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.container}>
+          <Image
+            source={bookDetails.coverImage ? { uri: bookDetails.coverImage } : <Ionicons name="image-outline" size={50} color="black" />}
+            style={styles.image}
+          />
+          <Text style={styles.title}>{bookDetails.title}</Text>
+          <Text style={styles.info}>{bookDetails.genre}</Text>
+          <Text style={styles.info}>Broj stranica: {bookDetails.pageCount}</Text>
 
-        <TextInput
-          style={styles.commentInput}
-          placeholder="Napiši recenziju..."
-          multiline
-          value={review}
-          onChangeText={(text) => setReview(text)}
-        />
+          <TextInput
+            style={styles.commentInput}
+            placeholder="Napiši recenziju..."
+            multiline
+            value={review}
+            onChangeText={(text) => setReview(text)}
+          />
 
-        <View style={styles.starsContainer}>
-          {Array(5).fill(0).map((_, index) => (
-            <FaStar
-              key={index}
-              size={24}
-              color={(hoverValue || rating) > index ? colors.orange : colors.grey}
-              onClick={() => handleClickStar(index + 1)}
-              onMouseOver={() => handleMouseOverStar(index + 1)}
-              onMouseLeave={handleMouseLeaveStar}
-            />
-          ))}
+          <View style={styles.starsContainer}>
+            {Array(5).fill(0).map((_, index) => (
+              <FaStar
+                key={index}
+                size={24}
+                color={(hoverValue || rating) > index ? colors.orange : colors.grey}
+                onClick={() => handleClickStar(index + 1)}
+                onMouseOver={() => handleMouseOverStar(index + 1)}
+                onMouseLeave={handleMouseLeaveStar}
+              />
+            ))}
+          </View>
+
+          <TouchableOpacity style={styles.editButton} onPress={handleAuthorClick}>
+            <Text style={styles.editButtonText}>{bookDetails.author}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.editButton} onPress={handleSaveReview}>
+            <Text style={styles.editButtonText}>Spremi recenziju</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('UrediKnjigu', { bookId })}>
+            <Text style={styles.editButtonText}>Uredi podatke o knjizi</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.editButton, { backgroundColor: '#63042F' }]} onPress={handleDeleteBook}>
+            <Text style={styles.editButtonText}>Obriši knjigu</Text>
+          </TouchableOpacity>
         </View>
-
-        <TouchableOpacity style={styles.editButton} onPress={handleAuthorClick}>
-          <Text style={styles.editButtonText}>{bookDetails.author}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.editButton} onPress={handleSaveReview}>
-          <Text style={styles.editButtonText}>Spremi recenziju</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('UrediKnjigu', { bookId })}>
-          <Text style={styles.editButtonText}>Uredi podatke o knjizi</Text>
-        </TouchableOpacity>
-      </View>
+      </ScrollView>
     </PageDesign>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    padding: 20,
+  },
   container: {
     flex: 1,
     alignItems: 'center',
-    padding: 20,
   },
   image: {
     width: 150,
@@ -159,11 +177,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-  },
-  author: {
-    fontSize: 18,
-    marginBottom: 10,
-    color: '#0066cc',
   },
   info: {
     fontSize: 16,
@@ -200,3 +213,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+

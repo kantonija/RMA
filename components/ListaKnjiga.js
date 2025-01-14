@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, ActivityIndicator } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import PageDesign from './ui/PageDesign';
 import { app } from '../firebaseConfig';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
@@ -12,23 +12,37 @@ const ListaKnjiga = () => {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const fetchBooks = async () => {
+    try {
+      setLoading(true);
+      const booksRef = collection(db, 'books');
+      const querySnapshot = await getDocs(booksRef);
+      const booksData = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+      setBooks(booksData);
+    } catch (error) {
+      console.error('Error fetching books:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchBooks(); // Osvežava podatke svaki put kada se ekran fokusira
+    }, [])
+  );
+
   const handleBookPress = (book) => {
     navigation.navigate('DetaljiKnjige', { bookId: book.id });
   };
 
-  useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        const booksRef = collection(db, 'books');
-        const querySnapshot = await getDocs(booksRef);
-        const booksData = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-        setBooks(booksData);
-      } catch (error) {
-        console.error('Error fetching books:', error);
-      }
-    };
-    fetchBooks();
-  }, []);
+  if (loading) {
+    return (
+      <PageDesign>
+        <ActivityIndicator size="large" color="#63042F" />
+      </PageDesign>
+    );
+  }
 
   return (
     <PageDesign>
@@ -52,7 +66,7 @@ const ListaKnjiga = () => {
               onPress={() => handleBookPress(book)}
             >
               <Image
-                source={{ uri: 'https://via.placeholder.com/150' }}
+                source={{ uri: book.coverImage || 'https://via.placeholder.com/150' }}
                 style={styles.bookImage}
               />
               <View>
@@ -101,7 +115,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   bookList: {
-    paddingBottom: 20, 
+    paddingBottom: 20,
   },
   bookItem: {
     flexDirection: 'row',
