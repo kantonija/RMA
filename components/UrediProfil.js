@@ -157,9 +157,9 @@ export default function UrediProfil() {
           </View>
         ) : (
           <View>
-            <Text>Najdraža knjiga: {najdrazaKnjiga}</Text>
-            <Text>Najdraži pisac: {najdraziPisac}</Text>
-            <Text>Najdraži žanr: {najdraziZanr}</Text>
+            <Text><b>Najdraža knjiga: </b>{najdrazaKnjiga}</Text>
+            <Text><b>Najdraži pisac:</b> {najdraziPisac}</Text>
+            <Text><b>Najdraži žanr: </b>{najdraziZanr}</Text>
           </View>
         )}
 

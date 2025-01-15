@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity, Image, Alert, ActivityIndicator, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { doc, getDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, query, where, getDocs, deleteDoc, addDoc } from 'firebase/firestore';
 import { firestore, auth } from '../firebaseConfig';
 import { FaStar } from 'react-icons/fa';
 import PageDesign from './ui/PageDesign';
@@ -21,6 +21,7 @@ export default function DetaljiKnjige({ route }) {
   const [hoverValue, setHoverValue] = useState(undefined);
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
+  const [existingReview, setExistingReview] = useState(null);
 
   useEffect(() => {
     const fetchBookDetails = async () => {
@@ -32,15 +33,27 @@ export default function DetaljiKnjige({ route }) {
           const bookData = bookSnap.data();
           setBookDetails(bookData);
 
-          const authorsRef = collection(firestore, 'authors');
+          const authorsRef = collection(firestore, 'books', bookId, 'author');
           const q = query(authorsRef, where('name', '==', bookData.author));
           const authorSnap = await getDocs(q);
 
           if (!authorSnap.empty) {
             const authorDoc = authorSnap.docs[0];
-            setAuthorId(authorDoc.id); 
+            setAuthorId(authorDoc.id);
           } else {
             console.warn('Autor nije pronađen u bazi.');
+          }
+
+          const userId = auth.currentUser.uid;
+          const userBooksRef = collection(firestore, 'users', userId, 'userBooks');
+          const bookDocRef = doc(userBooksRef, bookData.title);
+          const bookDocSnap = await getDoc(bookDocRef);
+
+          if (bookDocSnap.exists()) {
+            const bookDocData = bookDocSnap.data();
+            setReview(bookDocData.review);
+            setRating(bookDocData.rating);
+            setExistingReview(bookDocData);
           }
         } else {
           Alert.alert('Greška', 'Podaci o knjizi nisu pronađeni.');
@@ -57,11 +70,17 @@ export default function DetaljiKnjige({ route }) {
     setLoading(false);
   }, [bookId]);
 
+
+
   const handleSaveReview = async () => {
     try {
       const userId = auth.currentUser.uid;
-      const bookRef = doc(firestore, 'users', userId, 'userBooks', bookDetails.title);
-      await setDoc(bookRef, { review, rating });
+      const userBooksRef = collection(firestore, 'users', userId, 'userBooks');
+      const bookDocRef = doc(userBooksRef, bookDetails.title);
+      await setDoc(bookDocRef, {
+        review: review,
+        rating: rating
+      });
       Alert.alert('Uspjeh', 'Vaša recenzija je uspješno spremljena!');
     } catch (error) {
       console.error('Greška pri spremanju recenzije: ', error);
@@ -120,35 +139,54 @@ export default function DetaljiKnjige({ route }) {
           <Text style={styles.info}>{bookDetails.genre}</Text>
           <Text style={styles.info}>Broj stranica: {bookDetails.pageCount}</Text>
 
-          <TextInput
-            style={styles.commentInput}
-            placeholder="Napiši recenziju..."
-            multiline
-            value={review}
-            onChangeText={(text) => setReview(text)}
-          />
-
-          <View style={styles.starsContainer}>
-            {Array(5).fill(0).map((_, index) => (
-              <FaStar
-                key={index}
-                size={24}
-                color={(hoverValue || rating) > index ? colors.orange : colors.grey}
-                onClick={() => handleClickStar(index + 1)}
-                onMouseOver={() => handleMouseOverStar(index + 1)}
-                onMouseLeave={handleMouseLeaveStar}
+          {existingReview ? (
+            <View>
+              <Text style={styles.info}>Vaša recenzija:</Text>
+              <Text style={styles.review}>{existingReview.review}</Text>
+              <View style={styles.starsContainer}>
+                {Array(5).fill(0).map((_, index) => (
+                  <FaStar
+                    key={index}
+                    size={24}
+                    color={(existingReview.rating) > index ? colors.orange : colors.grey}
+                  />
+                ))}
+              </View>
+            </View>
+          ) : (
+            <View>
+              <TextInput
+                style={styles.commentInput}
+                placeholder="Napiši recenziju..."
+                multiline
+                value={review}
+                onChangeText={(text) => setReview(text)}
               />
-            ))}
-          </View>
 
-          <TouchableOpacity style={styles.editButton} onPress={handleAuthorClick}>
-            <Text style={styles.editButtonText}>{bookDetails.author}</Text>
-          </TouchableOpacity>
+              <View style={styles.starsContainer}>
+                {Array(5).fill(0).map((_, index) => (
+                  <FaStar
+                    key={index}
+                    size={24}
+                    color={(hoverValue || rating) > index ? colors.orange : colors.grey}
+                    onClick={() => handleClickStar(index + 1)}
+                    onMouseOver={() => handleMouseOverStar(index + 1)}
+                    onMouseLeave={handleMouseLeaveStar}
+                  />
+                ))}
+              </View>
+            </View>
+          )}
 
-          <TouchableOpacity style={styles.editButton} onPress={handleSaveReview}>
-            <Text style={styles.editButtonText}>Spremi recenziju</Text>
-          </TouchableOpacity>
+
           
+          {existingReview ? null : (
+            <TouchableOpacity style={styles.editButton} onPress={handleSaveReview}>
+              <Text style={styles.editButtonText}>Spremi recenziju</Text>
+            </TouchableOpacity>
+          )}
+          
+
           <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('UrediKnjigu', { bookId })}>
             <Text style={styles.editButtonText}>Uredi podatke o knjizi</Text>
           </TouchableOpacity>
@@ -160,6 +198,7 @@ export default function DetaljiKnjige({ route }) {
     </PageDesign>
   );
 }
+
 
 const styles = StyleSheet.create({
   scrollContainer: {
