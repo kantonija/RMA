@@ -4,6 +4,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { firestore } from "../firebaseConfig"; 
 import PageDesign from "./ui/PageDesign";
+import { supabase } from '../supabaseClient'
+
 
 export default function UrediKnjigu({ route, navigation }) {
   const { bookId } = route.params; 

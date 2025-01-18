@@ -7,6 +7,8 @@ import { auth } from "../firebaseConfig";
 import { signOut } from 'firebase/auth';
 import { AuthContext } from '../AuthContext';
 import { useNavigation } from '@react-navigation/native';
+import { supabase } from '../supabaseClient'
+
 
 const { width } = Dimensions.get("window");
 const db = getFirestore(app);

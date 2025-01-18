@@ -4,6 +4,8 @@ import { collection, setDoc, doc, getDocs, query, orderBy, where } from "firebas
 import { firestore } from "../firebaseConfig"; 
 import PageDesign from "./ui/PageDesign";
 import { AuthContext } from "../AuthContext";
+import { supabase } from '../supabaseClient'
+
 
 const DodajKnjigu = () => {
   const [title, setTitle] = useState("");

@@ -4,6 +4,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import PageDesign from './ui/PageDesign';
 import { app } from '../firebaseConfig';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import { supabase } from '../supabaseClient'
 
 const db = getFirestore(app);
 
