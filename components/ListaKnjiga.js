@@ -44,10 +44,6 @@ const ListaKnjiga = () => {
     filterBooks(text);
   };
 
-  const handleSearchButtonPress = () => {
-    filterBooks(searchText);
-  };
-
   useFocusEffect(
     useCallback(() => {
       fetchBooks(); 
@@ -154,12 +150,12 @@ const styles = StyleSheet.create({
     marginRight: 20,
   },
   bookTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#63042F',
   },
   bookAuthor: {
-    fontSize: 14,
+    fontSize: 18,
     color: '#C56590',
   },
 });

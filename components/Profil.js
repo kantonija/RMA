@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'absolute',
-    top: 150,
+    top: 135,
   },
   lastBook: {
     fontSize: 20,

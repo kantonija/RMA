@@ -115,6 +115,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     padding: 20,
+    width:'95%'
   },
   input: {
     width: "90%",
@@ -123,7 +124,7 @@ const styles = StyleSheet.create({
     borderColor: "#D3D3D3",
     borderRadius: 10,
     padding: 10,
-    marginBottom: 15,
+    marginTop: 15,
     backgroundColor: "#FFFFFF",
   },
   imagePlaceholder: {
@@ -145,10 +146,12 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
+    width:'70%'
   },
   buttonText: {
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "bold",
+    textAlign: 'center'
   },
 });

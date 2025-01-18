@@ -94,7 +94,6 @@ export default function UrediProfil() {
       await deleteDoc(userDocRef);
       Alert.alert('Uspjeh', 'Vaš profil je uspješno obrisan.');
 
-      // Odjava korisnika koristeći postojeću funkciju handleLogout
       handleLogout();
     } catch (error) {
       console.error('Greška pri brisanju profila: ', error);
@@ -104,7 +103,7 @@ export default function UrediProfil() {
 
   return (
     <PageDesign showCentralCircle={false}>
-      <View>
+      <View style={styles.viewstyle}>
         <Text style={styles.title}>Vaši podaci:</Text>
 
         <View style={styles.avatar}>
@@ -120,46 +119,34 @@ export default function UrediProfil() {
         </TouchableOpacity>
 
         {showProfile ? (
+  <View>
+    <Text style={styles.label}>Najdraža knjiga</Text>
+    <TextInput
+      style={styles.input}
+      placeholder="Najdraža knjiga"
+      value={najdrazaKnjiga}
+      onChangeText={(value) => setNajdrazaKnjiga(value)}
+    />
+    <Text style={styles.label}>Najdraži pisac</Text>
+    <TextInput
+      style={styles.input}
+      placeholder="Najdraži pisac"
+      value={najdraziPisac}
+      onChangeText={(value) => setNajdraziPisac(value)}
+    />
+    <Text style={styles.label}>Najdraži žanr</Text>
+    <TextInput
+      style={styles.input}
+      placeholder="Najdraži žanr"
+      value={najdraziZanr}
+      onChangeText={(value) => setNajdraziZanr(value)}
+    />
+  </View>
+) : (
           <View>
-            <Text>Najdraža knjiga</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Najdraža knjiga"
-              value={najdrazaKnjiga}
-              editable={true}
-              onChangeText={(value) => {
-                setNajdrazaKnjiga(value);
-                setProfile({ ...profile, favBook: value });
-              }}
-            />
-            <Text>Najdraži pisac</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Najdraži pisac"
-              value={najdraziPisac}
-              editable={true}
-              onChangeText={(value) => {
-                setNajdraziPisac(value);
-                setProfile({ ...profile, favAuthor: value });
-              }}
-            />
-            <Text>Najdraži žanr</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Najdraži žanr"
-              value={najdraziZanr}
-              editable={true}
-              onChangeText={(value) => {
-                setNajdraziZanr(value);
-                setProfile({ ...profile, favGenre: value });
-              }}
-            />
-          </View>
-        ) : (
-          <View>
-            <Text><b>Najdraža knjiga: </b>{najdrazaKnjiga}</Text>
-            <Text><b>Najdraži pisac:</b> {najdraziPisac}</Text>
-            <Text><b>Najdraži žanr: </b>{najdraziZanr}</Text>
+            <Text  style={styles.favourites}><b> Najdraža knjiga: </b> {najdrazaKnjiga}</Text>
+            <Text  style={styles.favourites}><b> Najdraži pisac: </b> {najdraziPisac}</Text>
+            <Text  style={styles.favourites}><b> Najdraži žanr: </b> {najdraziZanr}</Text>
           </View>
         )}
 
@@ -176,16 +163,24 @@ export default function UrediProfil() {
 }
 
 const styles = StyleSheet.create({
+  viewstyle: {
+    width: '95%',
+    alignItems: 'center',
+    alignContent: 'center',
+    marginTop:20,
+
+  },
   title: {
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 20,
+    color:'#63042F'
   },
   avatar: {
     backgroundColor: '#fdc0c7',
-    borderRadius: 50,
-    width: 100,
-    height: 100,
+    borderRadius: 100,
+    width: 120,
+    height: 120,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
@@ -195,19 +190,38 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   button: {
-    backgroundColor: "#7b5e96",
+    backgroundColor: "#A889E6",
     padding: 10,
     borderRadius: 5,
     alignItems: "center",
     marginBottom: 10,
+    width:'70%'
   },
   buttonText: {
     color: "#fff",
     fontSize: 16,
+    fontWeight: '450'
   },
   input: {
     borderBottomWidth: 1,
-    marginBottom: 10,
+    borderColor: '#A889E6',
     padding: 8,
+    marginBottom: 15,
+    fontSize: 16,
+    color: '#333',
+    backgroundColor: '#F9F9F9',
+    borderRadius: 5,
   },
+  favourites: {
+    color:'#63042F',
+    fontSize: 18,
+    marginBottom:7,
+    fontWeight: '500'
+  },
+  label: {
+    fontSize: 16,
+    color: '#63042F',
+    fontWeight: 'bold',
+    marginBottom: 5,
+  }
 });
