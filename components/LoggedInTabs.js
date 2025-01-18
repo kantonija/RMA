@@ -39,7 +39,7 @@ export default function LoggedInTabs() {
           backgroundColor: "#f6e2ee",
         },
         headerTitleStyle: {
-          fontSize: 18,
+          fontSize: 20,
         },
       })}
     >

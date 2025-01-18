@@ -10,6 +10,8 @@ const db = getFirestore(app);
 const ListaKnjiga = () => {
   const navigation = useNavigation();
   const [books, setBooks] = useState([]);
+  const [filteredBooks, setFilteredBooks] = useState([]);
+  const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(false);
 
   const fetchBooks = async () => {
@@ -19,16 +21,36 @@ const ListaKnjiga = () => {
       const querySnapshot = await getDocs(booksRef);
       const booksData = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
       setBooks(booksData);
-    } catch (error) {
-      console.error('Error fetching books:', error);
+      setFilteredBooks(booksData); 
+      } catch (error) {
+      console.error('Error fetching books:', error)
     } finally {
       setLoading(false);
     }
   };
 
+  
+  const filterBooks = (text) => {
+    const lowercasedText = text.toLowerCase();
+    const filtered = books.filter(book =>
+      book.title.toLowerCase().includes(lowercasedText) ||
+      book.author.toLowerCase().includes(lowercasedText)
+    );
+    setFilteredBooks(filtered);
+  };
+
+  const handleSearchTextChange = (text) => {
+    setSearchText(text);
+    filterBooks(text);
+  };
+
+  const handleSearchButtonPress = () => {
+    filterBooks(searchText);
+  };
+
   useFocusEffect(
     useCallback(() => {
-      fetchBooks(); // Osvežava podatke svaki put kada se ekran fokusira
+      fetchBooks(); 
     }, [])
   );
 
@@ -49,21 +71,20 @@ const ListaKnjiga = () => {
       <View style={styles.container}>
         <Text style={styles.heading}>Lista Knjiga</Text>
         <View style={styles.searchBar}>
-          <TextInput
+        <TextInput
             style={styles.input}
-            placeholder="Pretraži knjige..."
+            placeholder="Pretraži po naslovu ili autoru..."
+            value={searchText}
+            onChangeText={handleSearchTextChange}
           />
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Traži</Text>
-          </TouchableOpacity>
         </View>
 
         <ScrollView contentContainerStyle={styles.bookList}>
-          {books.sort((a, b) => a.title.localeCompare(b.title)).map((book) => (
-            <TouchableOpacity
-              key={book.id}
-              style={styles.bookItem}
-              onPress={() => handleBookPress(book)}
+          {filteredBooks.sort((a, b) => a.title.localeCompare(b.title)).map((book) => (
+           <TouchableOpacity
+            key={book.id}
+            style={styles.bookItem}
+            onPress={() => handleBookPress(book)}
             >
               <Image
                 source={{ uri: book.coverImage || 'https://via.placeholder.com/150' }}

@@ -125,6 +125,7 @@ const DodajKnjigu = () => {
 
   return (
     <PageDesign>
+     <View style={styles.viewstyle}>
       <TextInput
         style={styles.input}
         placeholder="Unesite ime knjige"
@@ -153,15 +154,23 @@ const DodajKnjigu = () => {
       <TouchableOpacity style={styles.button} onPress={handleAddBook}>
         <Text style={styles.buttonText}>Dodaj knjigu</Text>
       </TouchableOpacity>
+      </View>
     </PageDesign>
   );
 };
 
 const styles = StyleSheet.create({
+  viewstyle: {
+    marginTop: 70,
+    width: '85%',
+    alignContent: 'center',
+    alignItems: 'center',
+  },
+
   input: {
-    width: "70%",
-    marginTop: 15,
-    height: 40,
+    width: "85%",
+    marginTop: 20,
+    height: 45,
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 8,
@@ -170,7 +179,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   button: {
-    marginTop: 20,
+    marginTop: 70,
     width: "40%",
     height: 50,
     borderRadius: 8,

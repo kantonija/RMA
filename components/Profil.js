@@ -192,16 +192,16 @@ const styles = StyleSheet.create({
   textContainer: {
     position: 'absolute',
     top: width > 600 ? 15 : 10,
-    left: width > 600 ? -760 : -200,
+    left: width > 600 ? -760 : -190,
   },
   greetingText: {
-    fontSize: 24,
+    fontSize: 26,
     color: '#6b4c54',
     marginBottom: 10,
     fontWeight: 'bold',
   },
   infoText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#6b4c54',
   },
   bookContainer: {
@@ -211,10 +211,11 @@ const styles = StyleSheet.create({
     top: 150,
   },
   lastBook: {
-    fontSize: 16,
+    fontSize: 20,
     color: '#6b4c54',
     marginBottom: 10,
     fontWeight: 'bold',
+    textAlign: 'center'
   },
   bookCard: {
     width: 200,
@@ -223,6 +224,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    textAlign: 'center',
     elevation: 4,
     shadowColor: '#000',
     shadowOpacity: 0.1,
@@ -237,15 +239,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   bookName: {
-    fontSize: 16,
+    fontSize: 20,
     color: '#6b4c54',
   },
   bookAuthor: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#6b4c54',
   },
   noBookText: {
-    fontSize: 14,
+    fontSize: 18,
     color: '#6b4c54',
     fontStyle: 'italic',
   },
@@ -261,17 +263,17 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     top: 450,
-    left: -170,
+    left: -165,
   },
   editProfileButton: {
     backgroundColor: '#fdc0c7',
     width: 150,
     height: 150,
     top: 370,
-    right: -175,
+    right: -165,
   },
   buttonText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#63042F',
     textAlign: 'center',
     fontWeight: 'bold',
