@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Dimensions } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, ScrollView } from "react-native";
 import PageDesign from "./ui/PageDesign";
 import { app } from '../firebaseConfig';
 import { getFirestore, doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
@@ -7,8 +7,7 @@ import { auth } from "../firebaseConfig";
 import { signOut } from 'firebase/auth';
 import { AuthContext } from '../AuthContext';
 import { useNavigation } from '@react-navigation/native';
-import { supabase } from '../supabaseClient'
-
+import Toast from 'react-native-toast-message';
 
 const { width } = Dimensions.get("window");
 const db = getFirestore(app);
@@ -40,26 +39,17 @@ export default function UrediProfil() {
         }
       } catch (error) {
         console.error("Error fetching profile: ", error);
-        Alert.alert("Greška", "Došlo je do greške pri učitavanju vašeg profila.");
+        Toast.show({
+          type: 'error',
+          text1: 'Greška',
+          text2: 'Došlo je do greške pri učitavanju vašeg profila.',
+        });
       } finally {
         setLoading(false);
       }
     };
     fetchProfile();
   }, []);
-
-  const handleSetPhoto = () => {
-    // Postavljanje profilne fotografije (nije implementirano)
-  };
-
-  const handleRemovePhoto = () => {
-    // Uklanjanje profilne fotografije (nije implementirano)
-  };
-
-  const handleEditProfile = () => {
-    setShowProfile(!showProfile);
-    setIsEditable(!isEditable);
-  };
 
   const handleSaveProfile = async () => {
     try {
@@ -70,11 +60,19 @@ export default function UrediProfil() {
         favAuthor: najdraziPisac,
         favGenre: najdraziZanr,
       });
-      Alert.alert('Uspjeh', 'Vaš profil je uspješno spremljen!');
+      Toast.show({
+        type: 'success',
+        text1: 'Uspjeh',
+        text2: 'Vaš profil je uspješno spremljen!',
+      });
       setShowProfile(false);
     } catch (error) {
       console.error('Greška pri spremanju profila: ', error);
-      Alert.alert('Greška', 'Došlo je do greške pri spremanju vašeg profila.');
+      Toast.show({
+        type: 'error',
+        text1: 'Greška',
+        text2: 'Došlo je do greške pri spremanju vašeg profila.',
+      });
     }
   };
 
@@ -85,7 +83,11 @@ export default function UrediProfil() {
       navigation.navigate('Login');
     } catch (error) {
       console.error('Logout error:', error);
-      Alert.alert("Greška", "Došlo je do greške pri odjavi.");
+      Toast.show({
+        type: 'error',
+        text1: 'Greška',
+        text2: 'Došlo je do greške pri odjavi.',
+      });
     }
   };
 
@@ -94,87 +96,102 @@ export default function UrediProfil() {
       const userId = auth.currentUser.uid;
       const userDocRef = doc(db, 'users', userId);
       await deleteDoc(userDocRef);
-      Alert.alert('Uspjeh', 'Vaš profil je uspješno obrisan.');
+      Toast.show({
+        type: 'success',
+        text1: 'Uspjeh',
+        text2: 'Vaš profil je uspješno obrisan.',
+      });
 
       handleLogout();
     } catch (error) {
       console.error('Greška pri brisanju profila: ', error);
-      Alert.alert('Greška', 'Došlo je do greške pri brisanju vašeg profila.');
+      Toast.show({
+        type: 'error',
+        text1: 'Greška',
+        text2: 'Došlo je do greške pri brisanju vašeg profila.',
+      });
     }
   };
 
   return (
     <PageDesign showCentralCircle={false}>
-      <View style={styles.viewstyle}>
-        <Text style={styles.title}>Vaši podaci:</Text>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.viewstyle}>
+          <Text style={styles.title}>Vaši podaci:</Text>
 
-        <View style={styles.avatar}>
-          <Text style={styles.avatarPlaceholder}>avatar</Text>
-        </View>
-
-        <TouchableOpacity style={styles.button} onPress={handleSetPhoto}>
-          <Text style={styles.buttonText}>Postavi profilnu fotografiju</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={[styles.button, { marginTop: 10 }]} onPress={handleRemovePhoto}>
-          <Text style={styles.buttonText}>Ukloni fotografiju</Text>
-        </TouchableOpacity>
-
-        {showProfile ? (
-  <View>
-    <Text style={styles.label}>Najdraža knjiga</Text>
-    <TextInput
-      style={styles.input}
-      placeholder="Najdraža knjiga"
-      value={najdrazaKnjiga}
-      onChangeText={(value) => setNajdrazaKnjiga(value)}
-    />
-    <Text style={styles.label}>Najdraži pisac</Text>
-    <TextInput
-      style={styles.input}
-      placeholder="Najdraži pisac"
-      value={najdraziPisac}
-      onChangeText={(value) => setNajdraziPisac(value)}
-    />
-    <Text style={styles.label}>Najdraži žanr</Text>
-    <TextInput
-      style={styles.input}
-      placeholder="Najdraži žanr"
-      value={najdraziZanr}
-      onChangeText={(value) => setNajdraziZanr(value)}
-    />
-  </View>
-) : (
-          <View>
-            <Text  style={styles.favourites}><b> Najdraža knjiga: </b> {najdrazaKnjiga}</Text>
-            <Text  style={styles.favourites}><b> Najdraži pisac: </b> {najdraziPisac}</Text>
-            <Text  style={styles.favourites}><b> Najdraži žanr: </b> {najdraziZanr}</Text>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarPlaceholder}>avatar</Text>
           </View>
-        )}
 
-        <TouchableOpacity style={styles.button} onPress={showProfile ? handleSaveProfile : handleEditProfile}>
-          <Text style={styles.buttonText}>{showProfile ? 'Spremi podatke' : 'Uredi podatke'}</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Postavi profilnu fotografiju</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.button, { backgroundColor: '#63042F', marginTop: 10 }]} onPress={handleDeleteProfile}>
-          <Text style={styles.buttonText}>Obriši profil</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity style={[styles.button, { marginTop: 10 }]}>
+            <Text style={styles.buttonText}>Ukloni fotografiju</Text>
+          </TouchableOpacity>
+
+          {showProfile ? (
+            <View>
+              <Text style={styles.label}>Najdraža knjiga</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Najdraža knjiga"
+                value={najdrazaKnjiga}
+                onChangeText={(value) => setNajdrazaKnjiga(value)}
+              />
+              <Text style={styles.label}>Najdraži pisac</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Najdraži pisac"
+                value={najdraziPisac}
+                onChangeText={(value) => setNajdraziPisac(value)}
+              />
+              <Text style={styles.label}>Najdraži žanr</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Najdraži žanr"
+                value={najdraziZanr}
+                onChangeText={(value) => setNajdraziZanr(value)}
+              />
+            </View>
+          ) : (
+            <View>
+              <Text style={styles.favourites}><b> Najdraža knjiga: </b> {najdrazaKnjiga}</Text>
+              <Text style={styles.favourites}><b> Najdraži pisac: </b> {najdraziPisac}</Text>
+              <Text style={styles.favourites}><b> Najdraži žanr: </b> {najdraziZanr}</Text>
+            </View>
+          )}
+
+          <TouchableOpacity style={styles.button} onPress={showProfile ? handleSaveProfile : () => setShowProfile(true)}>
+            <Text style={styles.buttonText}>{showProfile ? 'Spremi podatke' : 'Uredi podatke'}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.button, { backgroundColor: '#63042F', marginTop: 10 }]} onPress={handleDeleteProfile}>
+            <Text style={styles.buttonText}>Obriši profil</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+      <Toast />
     </PageDesign>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    padding: 20,
+  },
   viewstyle: {
-    width: '95%',
+    flex: 1,
     alignItems: 'center',
+    width: '90%',
+    marginLeft: '5%',
     alignContent: 'center',
-    marginTop:20,
-
+    marginTop:20, 
   },
   title: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 20,
     color:'#63042F'
   },
@@ -192,19 +209,29 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   button: {
-    backgroundColor: "#A889E6",
+    backgroundColor: '#A889E6',
     padding: 10,
     borderRadius: 5,
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: 10,
-    width:'70%'
+    width:'70%',
   },
   buttonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: '450'
   },
+  label: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    color: '#63042F',
+  },
   input: {
+    width: width * 0.9,
+    height: 40,
+    borderWidth: 1,
+    paddingHorizontal: 10,
     borderBottomWidth: 1,
     borderColor: '#A889E6',
     padding: 8,
@@ -220,10 +247,4 @@ const styles = StyleSheet.create({
     marginBottom:7,
     fontWeight: '500'
   },
-  label: {
-    fontSize: 16,
-    color: '#63042F',
-    fontWeight: 'bold',
-    marginBottom: 5,
-  }
-});
+}); 

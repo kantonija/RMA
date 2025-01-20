@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, Image, Alert, ActivityIndicator, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, Image, ActivityIndicator, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { doc, getDoc, setDoc, collection, query, where, getDocs, deleteDoc, addDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { firestore, auth } from '../firebaseConfig';
 import { FaStar } from 'react-icons/fa';
 import PageDesign from './ui/PageDesign';
 import { useNavigation } from '@react-navigation/native';
+import Toast from 'react-native-toast-message';
 
 const colors = {
   orange: "#F2C265",
@@ -56,11 +57,19 @@ export default function DetaljiKnjige({ route }) {
             setExistingReview(bookDocData);
           }
         } else {
-          Alert.alert('Greška', 'Podaci o knjizi nisu pronađeni.');
+          Toast.show({
+            type: 'error',
+            text1: 'Greška',
+            text2: 'Podaci o knjizi nisu pronađeni.'
+          });
         }
       } catch (error) {
         console.error('Greška pri dohvaćanju detalja o knjizi: ', error);
-        Alert.alert('Greška', 'Došlo je do problema pri dohvaćanju podataka.');
+        Toast.show({
+          type: 'error',
+          text1: 'Greška',
+          text2: 'Došlo je do problema pri dohvaćanju podataka.'
+        });
       }
     };
 
@@ -69,8 +78,6 @@ export default function DetaljiKnjige({ route }) {
     }
     setLoading(false);
   }, [bookId]);
-
-
 
   const handleSaveReview = async () => {
     try {
@@ -81,10 +88,18 @@ export default function DetaljiKnjige({ route }) {
         review: review,
         rating: rating
       });
-      Alert.alert('Uspjeh', 'Vaša recenzija je uspješno spremljena!');
+      Toast.show({
+        type: 'success',
+        text1: 'Uspjeh',
+        text2: 'Vaša recenzija je uspješno spremljena!'
+      });
     } catch (error) {
       console.error('Greška pri spremanju recenzije: ', error);
-      Alert.alert('Greška', 'Došlo je do problema pri spremanju recenzije.');
+      Toast.show({
+        type: 'error',
+        text1: 'Greška',
+        text2: 'Došlo je do problema pri spremanju recenzije.'
+      });
     }
   };
 
@@ -99,7 +114,11 @@ export default function DetaljiKnjige({ route }) {
         authorName: bookDetails.author 
       });
     } else {
-      Alert.alert('Greška', 'Podaci o autoru nisu dostupni.');
+      Toast.show({
+        type: 'error',
+        text1: 'Greška',
+        text2: 'Podaci o autoru nisu dostupni.'
+      });
     }
   };
 
@@ -107,11 +126,19 @@ export default function DetaljiKnjige({ route }) {
     try {
       const bookRef = doc(firestore, 'books', bookId);
       await deleteDoc(bookRef);
-      Alert.alert('Uspjeh', 'Knjiga je uspješno obrisana.');
+      Toast.show({
+        type: 'success',
+        text1: 'Uspjeh',
+        text2: 'Knjiga je uspješno obrisana.'
+      });
       navigation.goBack(); 
     } catch (error) {
       console.error('Greška pri brisanju knjige: ', error);
-      Alert.alert('Greška', 'Došlo je do problema pri brisanju knjige.');
+      Toast.show({
+        type: 'error',
+        text1: 'Greška',
+        text2: 'Došlo je do problema pri brisanju knjige.'
+      });
     }
   };
 
@@ -178,14 +205,11 @@ export default function DetaljiKnjige({ route }) {
             </View>
           )}
 
-
-          
           {existingReview ? null : (
             <TouchableOpacity style={styles.editButton} onPress={handleSaveReview}>
               <Text style={styles.editButtonText}>Spremi recenziju</Text>
             </TouchableOpacity>
           )}
-          
 
           <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('UrediKnjigu', { bookId })}>
             <Text style={styles.editButtonText}>Uredi podatke o knjizi</Text>
@@ -195,10 +219,10 @@ export default function DetaljiKnjige({ route }) {
           </TouchableOpacity>
         </View>
       </ScrollView>
+      <Toast />
     </PageDesign>
   );
 }
-
 
 const styles = StyleSheet.create({
   scrollContainer: {
@@ -207,7 +231,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    marginBottom:90,
+    marginBottom: 90,
   },
   image: {
     width: 100,
@@ -253,4 +277,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-

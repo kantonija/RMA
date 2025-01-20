@@ -1,11 +1,10 @@
 import React, { useState, useContext, useEffect } from "react";
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from "react-native";
+import { View, Text, StyleSheet, TextInput, TouchableOpacity } from "react-native";
 import { collection, setDoc, doc, getDocs, query, orderBy, where } from "firebase/firestore";
 import { firestore } from "../firebaseConfig"; 
 import PageDesign from "./ui/PageDesign";
 import { AuthContext } from "../AuthContext";
-import { supabase } from '../supabaseClient'
-
+import Toast from "react-native-toast-message";
 
 const DodajKnjigu = () => {
   const [title, setTitle] = useState("");
@@ -15,7 +14,6 @@ const DodajKnjigu = () => {
   const [nextBookId, setNextBookId] = useState("");
   const [nextAuthorId, setNextAuthorId] = useState(""); 
   const { user } = useContext(AuthContext); 
-
 
   const fetchNextBookId = async () => {
     try {
@@ -36,7 +34,6 @@ const DodajKnjigu = () => {
     }
   };
 
- 
   const fetchNextAuthorId = async () => {
     try {
       const authorsRef = collection(firestore, "authors");
@@ -56,7 +53,6 @@ const DodajKnjigu = () => {
     }
   };
 
- 
   const checkAuthorExists = async (authorName) => {
     const authorsRef = collection(firestore, "authors");
     const q = query(authorsRef, where("name", "==", authorName));
@@ -65,7 +61,6 @@ const DodajKnjigu = () => {
     return !querySnapshot.empty; 
   };
 
-  
   const addAuthor = async () => {
     try {
       const authorRef = doc(firestore, "authors", nextAuthorId);
@@ -74,17 +69,28 @@ const DodajKnjigu = () => {
         name: author,  
         bio: "", 
       });
-      console.log("Autor je uspješno dodan!");
+      Toast.show({
+        type: "success",
+        text1: "Uspjeh",
+        text2: "Autor je uspješno dodan!",
+      });
     } catch (error) {
-      Alert.alert("Greška", "Dodavanje autora nije uspjelo. Pokušajte ponovo.");
+      Toast.show({
+        type: "error",
+        text1: "Greška",
+        text2: "Dodavanje autora nije uspjelo. Pokušajte ponovo.",
+      });
       console.error("Greška pri dodavanju autora:", error);
     }
   };
 
-  
   const handleAddBook = async () => {
     if (!title || !author || !pageCount || !genre) {
-      Alert.alert("Greška", "Molimo popunite sva polja.");
+      Toast.show({
+        type: "error",
+        text1: "Greška",
+        text2: "Molimo popunite sva polja.",
+      });
       return;
     }
 
@@ -108,14 +114,22 @@ const DodajKnjigu = () => {
         createdAt: new Date(),
       });
 
-      Alert.alert("Uspjeh", "Knjiga je uspješno dodana!");
+      Toast.show({
+        type: "success",
+        text1: "Uspjeh",
+        text2: "Knjiga je uspješno dodana!",
+      });
       setTitle("");
       setAuthor("");
       setPageCount("");
       setGenre("");
       fetchNextBookId();
     } catch (error) {
-      Alert.alert("Greška", "Dodavanje knjige nije uspjelo. Pokušajte ponovo.");
+      Toast.show({
+        type: "error",
+        text1: "Greška",
+        text2: "Dodavanje knjige nije uspjelo. Pokušajte ponovo.",
+      });
       console.error("Greška pri dodavanju knjige:", error);
     }
   };
@@ -157,6 +171,7 @@ const DodajKnjigu = () => {
         <Text style={styles.buttonText}>Dodaj knjigu</Text>
       </TouchableOpacity>
       </View>
+      <Toast />
     </PageDesign>
   );
 };

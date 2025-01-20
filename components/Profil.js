@@ -1,12 +1,13 @@
-import React, { useContext, useEffect, useState } from 'react'; 
-import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions, Alert } from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions } from 'react-native';
 import PageDesign from './ui/PageDesign';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 import { AuthContext } from '../AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { firestore } from '../firebaseConfig';
-import { collection, doc, getDoc, getDocs, orderBy, query, limit, where, Timestamp, setDoc, updateDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, orderBy, query, limit, where, Timestamp, setDoc } from 'firebase/firestore';
+import Toast from 'react-native-toast-message';
 
 const { width } = Dimensions.get("window");
 
@@ -15,8 +16,8 @@ export default function Profil() {
   const navigation = useNavigation();
 
   const [name, setName] = useState("");
-  const [lastBook, setLastBook] = useState(null); 
-  const [activityTime, setActivityTime] = useState(0); 
+  const [lastBook, setLastBook] = useState(null);
+  const [activityTime, setActivityTime] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,13 +35,17 @@ export default function Profil() {
 
         if (docSnap.exists()) {
           const userData = docSnap.data();
-          setName(userData.name); 
+          setName(userData.name);
         } else {
           console.log("No such document!");
         }
       } catch (error) {
         console.error("Error fetching profile: ", error);
-        Alert.alert("Greška", "Došlo je do greške pri učitavanju vašeg profila.");
+        Toast.show({
+          type: 'error',
+          text1: 'Greška',
+          text2: 'Došlo je do greške pri učitavanju vašeg profila.',
+        });
       } finally {
         setLoading(false);
       }
@@ -49,7 +54,7 @@ export default function Profil() {
     const fetchLastBook = async () => {
       try {
         const booksRef = collection(firestore, 'books');
-        const q = query(booksRef, orderBy('createdAt', 'desc'), limit(1)); 
+        const q = query(booksRef, orderBy('createdAt', 'desc'), limit(1));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
@@ -62,6 +67,7 @@ export default function Profil() {
         console.error('Error fetching last added book:', error);
       }
     };
+
     const fetchActivityTime = async () => {
       try {
         if (!user) return;
@@ -69,36 +75,35 @@ export default function Profil() {
         const currentDate = new Date();
         const lastWeekDate = new Date(currentDate);
         lastWeekDate.setDate(currentDate.getDate() - 7);
-    
+
         const activitiesRef = collection(firestore, 'activities');
         const q = query(
           activitiesRef,
           where('userId', '==', user.uid),
-          where('startTime', '>=', Timestamp.fromDate(lastWeekDate)), 
+          where('startTime', '>=', Timestamp.fromDate(lastWeekDate)),
           orderBy('startTime')
         );
         const querySnapshot = await getDocs(q);
-    
+
         if (querySnapshot.empty) {
           console.log('Nema aktivnosti u posljednjih 7 dana.');
           setActivityTime(0);
           return;
         }
-    
+
         let totalTimeInMinutes = 0;
         querySnapshot.forEach(doc => {
           const activity = doc.data();
-          
           if (activity.startTime && activity.endTime) {
             const startTime = activity.startTime.toDate();
             const endTime = activity.endTime.toDate();
-            const duration = (endTime - startTime) / (1000 * 60); 
+            const duration = (endTime - startTime) / (1000 * 60);
             totalTimeInMinutes += duration;
           } else {
             console.log('Nema startTime ili endTime za aktivnost:', doc.id);
           }
         });
-    
+
         setActivityTime(Math.round(totalTimeInMinutes));
       } catch (error) {
         console.error('Error fetching activity time:', error);
@@ -113,36 +118,22 @@ export default function Profil() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      logout(); 
-      navigation.navigate('Login'); 
+      logout();
+      navigation.navigate('Login');
+      Toast.show({
+        type: 'success',
+        text1: 'Odjava uspešna',
+        text2: 'Uspešno ste se odjavili.',
+      });
     } catch (error) {
       console.error('Logout error:', error);
-      Alert.alert("Greška", "Došlo je do greške pri odjavi.");
+      Toast.show({
+        type: 'error',
+        text1: 'Greška',
+        text2: 'Došlo je do greške pri odjavi.',
+      });
     }
   };
-
-  const createActivity = async () => {
-    try {
-      const activitiesRef = collection(firestore, 'activities');
-      const activitiesSnapshot = await getDocs(activitiesRef);
-      const activityCount = activitiesSnapshot.size;
-      const newActivityId = `activity${activityCount + 1}`;
-
-      const newActivity = {
-        userId: user.uid,
-        startTime: Timestamp.fromDate(new Date()),
-        endTime: null,
-        activityId: newActivityId,
-      };
-
-      const docRef = doc(activitiesRef, newActivityId);
-      await setDoc(docRef, newActivity);
-      console.log('New activity created:', newActivityId);
-    } catch (error) {
-      console.error('Error creating activity:', error);
-    }
-  };
-
 
   return (
     <PageDesign>
@@ -156,8 +147,8 @@ export default function Profil() {
           <Text style={styles.lastBook}>Vaša zadnje dodana knjiga</Text>
           {lastBook ? (
             <View style={styles.bookCard}>
-              <Image 
-                source={{ uri: lastBook.imageUrl || 'https://via.placeholder.com/150' }} 
+              <Image
+                source={{ uri: lastBook.imageUrl || 'https://via.placeholder.com/150' }}
                 style={styles.bookImagePlaceholder}
               />
               <Text style={styles.bookName}>{lastBook.title}</Text>
@@ -179,6 +170,7 @@ export default function Profil() {
           <Text style={styles.buttonText}>Uredi profil</Text>
         </TouchableOpacity>
       </View>
+      <Toast />
     </PageDesign>
   );
 };
@@ -215,7 +207,7 @@ const styles = StyleSheet.create({
     color: '#6b4c54',
     marginBottom: 10,
     fontWeight: 'bold',
-    textAlign: 'center'
+    textAlign: 'center',
   },
   bookCard: {
     width: 200,
