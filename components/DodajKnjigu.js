@@ -141,35 +141,35 @@ const DodajKnjigu = () => {
 
   return (
     <PageDesign>
-     <View style={styles.viewstyle}>
-      <TextInput
-        style={styles.input}
-        placeholder="Unesite ime knjige"
-        value={title}
-        onChangeText={(text) => setTitle(text)}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Unesite ime pisca"
-        value={author}
-        onChangeText={(text) => setAuthor(text)}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Unesite broj stranica"
-        value={pageCount}
-        keyboardType="numeric"
-        onChangeText={(text) => setPageCount(text)}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Unesite žanr knjige"
-        value={genre}
-        onChangeText={(text) => setGenre(text)}
-      />
-      <TouchableOpacity style={styles.button} onPress={handleAddBook}>
-        <Text style={styles.buttonText}>Dodaj knjigu</Text>
-      </TouchableOpacity>
+      <View style={styles.viewstyle}>
+        <TextInput
+          style={styles.input}
+          placeholder="Unesite ime knjige"
+          value={title}
+          onChangeText={(text) => setTitle(text)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Unesite ime pisca"
+          value={author}
+          onChangeText={(text) => setAuthor(text)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Unesite broj stranica"
+          value={pageCount}
+          keyboardType="numeric"
+          onChangeText={(text) => setPageCount(text)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Unesite žanr knjige"
+          value={genre}
+          onChangeText={(text) => setGenre(text)}
+        />
+        <TouchableOpacity style={styles.button} onPress={handleAddBook}>
+          <Text style={styles.buttonText}>Dodaj knjigu</Text>
+        </TouchableOpacity>
       </View>
       <Toast />
     </PageDesign>

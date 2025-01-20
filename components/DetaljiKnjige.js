@@ -15,8 +15,8 @@ const colors = {
 
 export default function DetaljiKnjige({ route }) {
   const { bookId } = route.params;
+  const [authorId, setAuthorId]= useState(null);
   const [bookDetails, setBookDetails] = useState(null);
-  const [authorId, setAuthorId] = useState(null); 
   const [review, setReview] = useState('');
   const [rating, setRating] = useState(0);
   const [hoverValue, setHoverValue] = useState(undefined);
@@ -29,27 +29,45 @@ export default function DetaljiKnjige({ route }) {
       try {
         const bookRef = doc(firestore, 'books', bookId);
         const bookSnap = await getDoc(bookRef);
-
+  
         if (bookSnap.exists()) {
           const bookData = bookSnap.data();
           setBookDetails(bookData);
-
-          const authorsRef = collection(firestore, 'books', bookId, 'author');
-          const q = query(authorsRef, where('name', '==', bookData.author));
-          const authorSnap = await getDocs(q);
-
-          if (!authorSnap.empty) {
-            const authorDoc = authorSnap.docs[0];
-            setAuthorId(authorDoc.id);
+  
+          
+          const authorName = bookData.author;
+  
+          if (authorName) {
+            const authorsRef = collection(firestore, 'authors');
+            const q = query(authorsRef, where('name', '==', authorName));
+            const authorSnap = await getDocs(q);
+  
+            if (!authorSnap.empty) {
+              const authorDoc = authorSnap.docs[0];
+              setAuthorId(authorDoc.id); 
+            } else {
+              console.warn('Autor nije pronađen u bazi za ime: ', authorName);
+              Toast.show({
+                type: 'error',
+                text1: 'Greška',
+                text2: 'Autor nije pronađen u bazi podataka.'
+              });
+            }
           } else {
-            console.warn('Autor nije pronađen u bazi.');
+            console.warn('Knjiga nema autora: ', bookData.title);
+            Toast.show({
+              type: 'error',
+              text1: 'Greška',
+              text2: 'Knjiga nema autora!'
+            });
           }
-
+  
+          
           const userId = auth.currentUser.uid;
           const userBooksRef = collection(firestore, 'users', userId, 'userBooks');
           const bookDocRef = doc(userBooksRef, bookData.title);
           const bookDocSnap = await getDoc(bookDocRef);
-
+  
           if (bookDocSnap.exists()) {
             const bookDocData = bookDocSnap.data();
             setReview(bookDocData.review);
@@ -72,12 +90,13 @@ export default function DetaljiKnjige({ route }) {
         });
       }
     };
-
+  
     if (bookId) {
       fetchBookDetails();
     }
     setLoading(false);
   }, [bookId]);
+  
 
   const handleSaveReview = async () => {
     try {
@@ -121,6 +140,7 @@ export default function DetaljiKnjige({ route }) {
       });
     }
   };
+  
 
   const handleDeleteBook = async () => {
     try {
@@ -146,13 +166,13 @@ export default function DetaljiKnjige({ route }) {
     return <ActivityIndicator size="large" color="#986BFC" />;
   }
 
-  if (!bookDetails) {
-    return (
+ if (!bookDetails) {
+   return (
       <PageDesign>
         <Text style={styles.errorText}>Podaci o knjizi nisu dostupni ili nedostaju.</Text>
-      </PageDesign>
-    );
-  }
+     </PageDesign>
+);
+}
 
   return (
     <PageDesign showCentralCircle={false}>
@@ -163,6 +183,7 @@ export default function DetaljiKnjige({ route }) {
             style={styles.image}
           />
           <Text style={styles.title}>{bookDetails.title}</Text>
+          <Text style={styles.info}>{bookDetails.author}</Text>
           <Text style={styles.info}>{bookDetails.genre}</Text>
           <Text style={styles.info}>Broj stranica: {bookDetails.pageCount}</Text>
 
@@ -210,7 +231,9 @@ export default function DetaljiKnjige({ route }) {
               <Text style={styles.editButtonText}>Spremi recenziju</Text>
             </TouchableOpacity>
           )}
-
+        <TouchableOpacity style={styles.editButton} onPress={handleAuthorClick}>
+            <Text style={styles.editButtonText}>Uredi podatke o autoru</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('UrediKnjigu', { bookId })}>
             <Text style={styles.editButtonText}>Uredi podatke o knjizi</Text>
           </TouchableOpacity>
@@ -226,12 +249,16 @@ export default function DetaljiKnjige({ route }) {
 
 const styles = StyleSheet.create({
   scrollContainer: {
+    flex: 1,
     padding: 20,
+    width: '95%',
+    alignItems: 'center',
   },
   container: {
     flex: 1,
     alignItems: 'center',
-    marginBottom: 90,
+    padding: 20,
+    width: '95%',
   },
   image: {
     width: 100,
@@ -240,11 +267,18 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
+    color: '#63042F',
     fontWeight: 'bold',
   },
   info: {
-    fontSize: 16,
-    marginBottom: 10,
+    fontSize: 20,
+    marginBottom: 20,
+    color: '#6b4c54',
+  },
+  review: {
+    fontSize: 20,
+    color: '#6b4c54',
+    marginBottom: 20,
   },
   commentInput: {
     width: '90%',

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, TextInput, TouchableOpacity, Text, Alert } from "react-native";
+import { StyleSheet, View, TextInput, TouchableOpacity, Text } from "react-native";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { firestore } from "../firebaseConfig";
 import PageDesign from "./ui/PageDesign";
+import Toast from "react-native-toast-message";
 
 export default function UrediAutora({ route, navigation }) {
   const { authorId } = route.params;
@@ -24,18 +25,30 @@ export default function UrediAutora({ route, navigation }) {
         setOriginalImeAutora(authorData.name || "");
         setOriginalBiografijaAutora(authorData.bio || "");
       } else {
-        Alert.alert("Greška", "Podaci o autoru nisu pronađeni.");
+        Toast.show({
+          type: "error",
+          text1: "Greška",
+          text2: "Podaci o autoru nisu pronađeni.",
+        });
         navigation.goBack();
       }
     } catch (error) {
       console.error("Greška pri dohvaćanju podataka o autoru:", error);
-      Alert.alert("Greška", "Nije moguće dohvatiti podatke o autoru.");
+      Toast.show({
+        type: "error",
+        text1: "Greška",
+        text2: "Nije moguće dohvatiti podatke o autoru.",
+      });
     }
   };
 
   const handleUpdateAuthor = async () => {
     if (!imeAutora) {
-      Alert.alert("Greška", "Ime autora ne smije biti prazno.");
+      Toast.show({
+        type: "error",
+        text1: "Greška",
+        text2: "Ime autora ne smije biti prazno.",
+      });
       return;
     }
 
@@ -46,11 +59,19 @@ export default function UrediAutora({ route, navigation }) {
         bio: biografijaAutora,
       });
 
-      Alert.alert("Uspjeh", "Podaci o autoru su uspješno ažurirani.");
+      Toast.show({
+        type: "success",
+        text1: "Uspjeh",
+        text2: "Podaci o autoru su uspješno ažurirani.",
+      });
       navigation.goBack();
     } catch (error) {
       console.error("Greška pri ažuriranju autora:", error);
-      Alert.alert("Greška", "Nije moguće ažurirati podatke o autoru. Pokušajte ponovo.");
+      Toast.show({
+        type: "error",
+        text1: "Greška",
+        text2: "Nije moguće ažurirati podatke o autoru. Pokušajte ponovo.",
+      });
     }
   };
 
@@ -63,14 +84,14 @@ export default function UrediAutora({ route, navigation }) {
       <View style={styles.container}>
         <Text style={styles.label}>Ime autora</Text>
         <Text style={styles.text}>{originalImeAutora}</Text>
-        
+
         <TextInput
           style={styles.input}
           placeholder="Unesite novo ime autora"
           value={imeAutora}
           onChangeText={(text) => setImeAutora(text)}
         />
-        
+
         <Text style={styles.label}>Biografija autora</Text>
         <Text style={styles.text}>{originalBiografijaAutora}</Text>
 
@@ -86,6 +107,7 @@ export default function UrediAutora({ route, navigation }) {
           <Text style={styles.buttonText}>Spremi promjene</Text>
         </TouchableOpacity>
       </View>
+      <Toast />
     </PageDesign>
   );
 }
@@ -95,10 +117,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     padding: 20,
+    width: '90%',
   },
   input: {
-    width: "90%",
-    height: 100,
+    width: '95%',
+    height: '20%',
     borderWidth: 1,
     borderColor: "#D3D3D3",
     borderRadius: 10,
@@ -112,6 +135,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     alignSelf: "flex-start",
     width: "90%",
+    color: '#63042F',
   },
   text: {
     fontSize: 16,

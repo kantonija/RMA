@@ -228,8 +228,8 @@ const styles = StyleSheet.create({
     color: '#63042F',
   },
   input: {
-    width: width * 0.9,
-    height: 40,
+    width: '90%',
+    height: '10%',
     borderWidth: 1,
     paddingHorizontal: 10,
     borderBottomWidth: 1,

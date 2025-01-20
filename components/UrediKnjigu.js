@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert, Image } from "react-native";
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { firestore } from "../firebaseConfig"; 
 import PageDesign from "./ui/PageDesign";
-import { supabase } from '../supabaseClient'
-
+import Toast from 'react-native-toast-message'; 
+import { supabase } from '../supabaseClient';
 
 export default function UrediKnjigu({ route, navigation }) {
   const { bookId } = route.params; 
@@ -30,18 +30,33 @@ export default function UrediKnjigu({ route, navigation }) {
         setBrojStranica(bookData.pageCount);
         setCoverImage(bookData.coverImage || ""); 
       } else {
-        Alert.alert("Greška", "Podaci o knjizi nisu pronađeni.");
+        Toast.show({
+          type: 'error',
+          position: 'bottom',
+          text1: 'Greška',
+          text2: 'Podaci o knjizi nisu pronađeni.',
+        });
         navigation.goBack();
       }
     } catch (error) {
       console.error("Greška pri dohvaćanju podataka o knjizi:", error);
-      Alert.alert("Greška", "Nije moguće dohvatiti podatke o knjizi.");
+      Toast.show({
+        type: 'error',
+        position: 'bottom',
+        text1: 'Greška',
+        text2: 'Nije moguće dohvatiti podatke o knjizi.',
+      });
     }
   };
 
   const handleUpdateBook = async () => {
     if (!naslovKnjige || !autorKnjige || !zanrKnjige || !brojStranica) {
-      Alert.alert("Greška", "Molimo popunite sva polja.");
+      Toast.show({
+        type: 'error',
+        position: 'bottom',
+        text1: 'Greška',
+        text2: 'Molimo popunite sva polja.',
+      });
       return;
     }
 
@@ -55,11 +70,21 @@ export default function UrediKnjigu({ route, navigation }) {
         coverImage: coverImage,
       });
 
-      Alert.alert("Uspjeh", "Podaci o knjizi su uspješno ažurirani.");
+      Toast.show({
+        type: 'success',
+        position: 'bottom',
+        text1: 'Uspjeh',
+        text2: 'Podaci o knjizi su uspješno ažurirani.',
+      });
       navigation.goBack(); 
     } catch (error) {
       console.error("Greška pri ažuriranju knjige:", error);
-      Alert.alert("Greška", "Nije moguće ažurirati knjigu. Pokušajte ponovo.");
+      Toast.show({
+        type: 'error',
+        position: 'bottom',
+        text1: 'Greška',
+        text2: 'Nije moguće ažurirati knjigu. Pokušajte ponovo.',
+      });
     }
   };
 
@@ -108,6 +133,8 @@ export default function UrediKnjigu({ route, navigation }) {
           <Text style={styles.buttonText}>Spremi promjene</Text>
         </TouchableOpacity>
       </View>
+
+      <Toast ref={(ref) => Toast.setRef(ref)} />  {/* dodaj Toast komponentu */}
     </PageDesign>
   );
 }
