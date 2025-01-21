@@ -11,7 +11,6 @@ import Toast from 'react-native-toast-message';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../supabaseClient';
 import { Alert } from "react-native";
-import * as FileSystem from 'expo-file-system';
 import { Image } from 'react-native';
 
 const { width } = Dimensions.get("window");
@@ -102,6 +101,38 @@ export default function UrediProfil() {
         type: 'error',
         text1: 'Greška',
         text2: 'Došlo je do greške pri odjavi.',
+      });
+    }
+  };
+
+  const deleteProfilePicture = async () => {
+    try {
+      const userId = auth.currentUser.uid;
+      const fileName = `${userId}-${Date.now()}.jpg`;
+      const { error } = await supabase.storage
+        .from("usersProfilePictures")
+        .remove([fileName]);
+      if (error) {
+        console.error("Error deleting profile picture:", error);
+        Toast.show({
+          type: 'error',
+          text1: 'Greška',
+          text2: 'Došlo je do greške pri brisanju profila.',
+        });
+      } else {
+        setProfile((prev) => ({ ...prev, profileImage: '' }));
+        Toast.show({
+          type: 'success',
+          text1: 'Uspjeh',
+          text2: 'Vaš profilna fotografija je uspješno obrisana!',
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting profile picture:", error);
+      Toast.show({
+        type: 'error',
+        text1: 'Greška',
+        text2: 'Došlo je do greške pri brisanju profila.',
       });
     }
   };
@@ -203,7 +234,7 @@ export default function UrediProfil() {
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.button, { marginTop: 10 }]}>
-            <Text style={styles.buttonText}>Ukloni fotografiju</Text>
+            <Text style={styles.buttonText} onPress={deleteProfilePicture}>Ukloni fotografiju</Text>
           </TouchableOpacity>
 
           {showProfile ? (
