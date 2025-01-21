@@ -56,17 +56,20 @@ export default function Profil() {
         const booksRef = collection(firestore, 'books');
         const q = query(booksRef, orderBy('createdAt', 'desc'), limit(1));
         const querySnapshot = await getDocs(q);
-
+    
         if (!querySnapshot.empty) {
           const lastBookData = querySnapshot.docs[0].data();
           setLastBook(lastBookData);
         } else {
-          console.log("No books found.");
+          console.log("Nema knjiga.");
+          setLastBook(null);
         }
       } catch (error) {
-        console.error('Error fetching last added book:', error);
+        console.error('Pogreška pri dohvaćanju zadnje knjige:', error);
+        setLastBook(null);
       }
     };
+    
 
     const fetchActivityTime = async () => {
       try {
@@ -144,15 +147,13 @@ export default function Profil() {
         </View>
 
         <View style={styles.bookContainer}>
-          <Text style={styles.lastBook}>Vaša zadnje dodana knjiga</Text>
           {lastBook ? (
             <View style={styles.bookCard}>
               <Image
-                source={{ uri: lastBook.imageUrl || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }}
+                source={{ uri: lastBook.coverImage || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }}
                 style={styles.bookImagePlaceholder}
               />
-              <Text style={styles.bookName}>{lastBook.title}</Text>
-              <Text style={styles.bookAuthor}>Autor: {lastBook.author}</Text>
+              <Text style={styles.bookName}>Posljednje dodano:<br/><u>{lastBook.title}</u></Text>
             </View>
           ) : (
             <Text style={styles.noBookText}>Nema zadnje dodane knjige.</Text>
@@ -189,7 +190,7 @@ const styles = StyleSheet.create({
   greetingText: {
     fontSize: 26,
     color: '#6b4c54',
-    marginBottom: 10,
+    marginBottom: 8,
     fontWeight: 'bold',
   },
   infoText: {
@@ -200,20 +201,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'absolute',
-    top: 135,
-  },
-  lastBook: {
-    fontSize: 20,
-    color: '#6b4c54',
-    marginBottom: 10,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    top: 110,
+    width: '90%',
   },
   bookCard: {
-    width: 200,
-    height: 120,
-    backgroundColor: '#fff',
+    width: width * 0.5, 
+    height: width * 0.55,
+    backgroundColor: '#d6bcfa',
     borderRadius: 10,
+    padding: 8,
     alignItems: 'center',
     justifyContent: 'center',
     textAlign: 'center',
@@ -224,24 +220,24 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
   },
   bookImagePlaceholder: {
-    width: 50,
-    height: 50,
-    backgroundColor: '#d6bcfa',
+    width: width * 0.4,
+    height: width * 0.4,
+    resizeMode: 'contain',    
     borderRadius: 5,
-    marginBottom: 10,
+    marginBottom: 4,
   },
   bookName: {
-    fontSize: 20,
+    fontSize: 18,
+    fontWeight: '500',
     color: '#6b4c54',
-  },
-  bookAuthor: {
-    fontSize: 16,
-    color: '#6b4c54',
+    marginBottom: 5,
+    textAlign: 'center',
   },
   noBookText: {
     fontSize: 18,
     color: '#6b4c54',
     fontStyle: 'italic',
+    textAlign: 'center',
   },
   circleButton: {
     borderRadius: 1000,
@@ -271,3 +267,4 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+
