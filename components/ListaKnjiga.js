@@ -84,7 +84,7 @@ const ListaKnjiga = () => {
             onPress={() => handleBookPress(book)}
             >
               <Image
-                source={{ uri: book.coverImage || 'https://via.placeholder.com/150' }}
+                source={{ uri: book.coverImage || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }}
                 style={styles.bookImage}
               />
               <View>

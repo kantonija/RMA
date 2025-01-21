@@ -8,6 +8,11 @@ import { signOut } from 'firebase/auth';
 import { AuthContext } from '../AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
+import * as ImagePicker from 'expo-image-picker';
+import { supabase } from '../supabaseClient';
+import { Alert } from "react-native";
+import * as FileSystem from 'expo-file-system';
+import { Image } from 'react-native';
 
 const { width } = Dimensions.get("window");
 const db = getFirestore(app);
@@ -30,7 +35,10 @@ export default function UrediProfil() {
         const docRef = doc(db, 'users', userId);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setProfile({ ...docSnap.data() });
+          setProfile({
+            ...docSnap.data(),
+            profileImage: docSnap.data().profileImage || '',
+          });
           setNajdrazaKnjiga(docSnap.data().favBook || '');
           setNajdraziPisac(docSnap.data().favAuthor || '');
           setNajdraziZanr(docSnap.data().favGenre || '');
@@ -59,6 +67,7 @@ export default function UrediProfil() {
         favBook: najdrazaKnjiga,
         favAuthor: najdraziPisac,
         favGenre: najdraziZanr,
+        profileImage: profile.profileImage,
       });
       Toast.show({
         type: 'success',
@@ -80,6 +89,12 @@ export default function UrediProfil() {
     try {
       await signOut(auth);
       logout();
+      const userId = auth.currentUser.uid;
+      const userDocRef = doc(db, 'users', userId);
+      await setDoc(userDocRef, {
+        ...profile,
+        profileImage: profile.profileImage,
+      }, { merge: true });
       navigation.navigate('Login');
     } catch (error) {
       console.error('Logout error:', error);
@@ -91,6 +106,55 @@ export default function UrediProfil() {
     }
   };
 
+  const setProfilePicture = async () => {
+    const userId = auth.currentUser.uid;
+    console.log(userId);
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaType,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1
+    });
+
+    if (!result.canceled) {
+        const {uri} = result.assets[0];
+        const fileName = `${userId}-${Date.now()}.jpg`;
+  
+        try {
+          const response = await fetch(uri);
+          const blob = await response.blob();
+  
+          const {data, error} = await supabase.storage
+                          .from("usersProfilePictures")
+                          .upload(fileName, blob);
+  
+          
+  
+          if (error) {
+            Alert.alert("Greška", "Datoteka nije učitana!");
+            return;
+          }
+          const {data: publicUrlData } = supabase.storage
+                          .from("usersProfilePictures")
+                          .getPublicUrl(fileName);
+  
+          const publicUrl = publicUrlData.publicUrl;
+  
+          setProfile((prev) => ({...prev, profileImage: publicUrl}));
+          console.log('Profile image updated:', profile.profileImage);
+  
+        } catch (uploadError) {
+  
+        }
+      }
+    }
+ if (loading) {
+ return (
+ <View style = {styles.container} >
+ <Text style = {styles.text} > Učitavanje profila ...</Text>
+ </View>
+ );
+}
   const handleDeleteProfile = async () => {
     try {
       const userId = auth.currentUser.uid;
@@ -120,11 +184,22 @@ export default function UrediProfil() {
           <Text style={styles.title}>Vaši podaci:</Text>
 
           <View style={styles.avatar}>
-            <Text style={styles.avatarPlaceholder}>avatar</Text>
-          </View>
+  {profile.profileImage ? (
+    <Image
+      source={{ uri: profile.profileImage }}
+      style={{ width: 120, height: 120, borderRadius: 100 }}
+    />
+  ) : (
+    <Text style={styles.avatarPlaceholder}>avatar</Text>
+  )}
+</View>
 
           <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Postavi profilnu fotografiju</Text>
+            <Text style={styles.buttonText} onPress={setProfilePicture}>Postavi profilnu fotografiju</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText} onPress={handleSaveProfile}>Spremi fotografiju</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.button, { marginTop: 10 }]}>

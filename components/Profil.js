@@ -148,7 +148,7 @@ export default function Profil() {
           {lastBook ? (
             <View style={styles.bookCard}>
               <Image
-                source={{ uri: lastBook.imageUrl || 'https://via.placeholder.com/150' }}
+                source={{ uri: lastBook.imageUrl || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }}
                 style={styles.bookImagePlaceholder}
               />
               <Text style={styles.bookName}>{lastBook.title}</Text>
