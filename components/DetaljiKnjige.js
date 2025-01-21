@@ -176,8 +176,8 @@ export default function DetaljiKnjige({ route }) {
 
   return (
     <PageDesign showCentralCircle={false}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
           <Image
             source={bookDetails.coverImage ? { uri: bookDetails.coverImage } : <Ionicons name="image-outline" size={50} color="black" />}
             style={styles.image}
@@ -240,8 +240,8 @@ export default function DetaljiKnjige({ route }) {
           <TouchableOpacity style={[styles.editButton, { backgroundColor: '#63042F' }]} onPress={handleDeleteBook}>
             <Text style={styles.editButtonText}>Obriši knjigu</Text>
           </TouchableOpacity>
-        </View>
-      </ScrollView>
+          </ScrollView>
+          </View>
       <Toast />
     </PageDesign>
   );
@@ -249,10 +249,12 @@ export default function DetaljiKnjige({ route }) {
 
 const styles = StyleSheet.create({
   scrollContainer: {
-    flex: 1,
     padding: 20,
-    width: '95%',
+    width: '90%',
     alignItems: 'center',
+    justifyContent:'center',
+    marginTop: 10,
+    marginBottom: 10,
   },
   container: {
     flex: 1,
@@ -267,6 +269,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
+    textAlign: 'center',
     color: '#63042F',
     fontWeight: 'bold',
   },
@@ -286,6 +289,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     padding: 10,
+    borderColor:'#63042F',
     textAlignVertical: 'top',
     marginBottom: 20,
   },
@@ -298,7 +302,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#A889E6',
     padding: 10,
     borderRadius: 10,
-    marginBottom: 10,
+    marginBottom: 20,
   },
   editButtonText: {
     color: '#FFFFFF',
