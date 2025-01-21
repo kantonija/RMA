@@ -38,7 +38,7 @@ export default function DetaljiKnjige({ route }) {
           const authorName = bookData.author;
   
           if (authorName) {
-            const authorsRef = collection(firestore, 'author');
+            const authorsRef = collection(firestore, 'authors');
             const q = query(authorsRef, where('name', '==', authorName));
             const authorSnap = await getDocs(q);
   
