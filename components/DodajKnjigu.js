@@ -1,48 +1,23 @@
-import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, Image, ScrollView } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { addDoc, collection, getDocs, setDoc, query, orderBy, where, doc } from "firebase/firestore";
+import React, { useState, useContext, useEffect } from "react";
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView } from "react-native";
+import { collection, setDoc, doc, getDocs, query, orderBy, where } from "firebase/firestore";
 import { firestore } from "../firebaseConfig";
 import PageDesign from "./ui/PageDesign";
+import { AuthContext } from "../AuthContext";
 import Toast from "react-native-toast-message";
-import { supabase } from "../supabaseClient";
 import * as ImagePicker from "expo-image-picker";
+import { supabase } from "../supabaseClient";
 
-export default function DodajKnjigu({ navigation }) {
-  const [naslovKnjige, setNaslovKnjige] = useState("");
-  const [noviAutor, setNoviAutor] = useState("");
-  const [zanrKnjige, setZanrKnjige] = useState("");
-  const [brojStranica, setBrojStranica] = useState("");
-  const [coverImage, setCoverImage] = useState("");
-  const [nextAuthorId, setNextAuthorId] = useState(null);
-  const [nextBookId, setNextBookId] = useState(null);
+const DodajKnjigu = () => {
+  const [title, setTitle] = useState("");
+  const [author, setAuthor] = useState("");
+  const [pageCount, setPageCount] = useState("");
+  const [genre, setGenre] = useState("");
+  const [nextBookId, setNextBookId] = useState("");
+  const [nextAuthorId, setNextAuthorId] = useState("");
+  const [coverImageUrl, setCoverImageUrl] = useState(null);
+  const { user } = useContext(AuthContext);
 
-  useEffect(() => {
-    fetchNextAuthorId();
-    fetchNextBookId();
-  }, []);
-
-  // Fetch the next Author ID based on the highest existing ID
-  const fetchNextAuthorId = async () => {
-    try {
-      const authorsRef = collection(firestore, "authors");
-      const q = query(authorsRef, orderBy("id", "desc"));
-      const querySnapshot = await getDocs(q);
-
-      if (!querySnapshot.empty) {
-        const lastAuthor = querySnapshot.docs[0].data();
-        const lastId = parseInt(lastAuthor.id.replace("author", ""), 10);
-        setNextAuthorId(lastId + 1);  // Increment the highest ID by 1
-      } else {
-        setNextAuthorId(1);  // If no authors exist, start with 1
-      }
-    } catch (error) {
-      console.error("Error fetching next author ID:", error);
-      setNextAuthorId(1);  // Default to 1 if there's an error
-    }
-  };
-
-  // Fetch the next Book ID based on the highest existing ID
   const fetchNextBookId = async () => {
     try {
       const booksRef = collection(firestore, "books");
@@ -52,110 +27,138 @@ export default function DodajKnjigu({ navigation }) {
       if (!querySnapshot.empty) {
         const lastBook = querySnapshot.docs[0].data();
         const lastId = parseInt(lastBook.id.replace("book", ""), 10);
-        setNextBookId(lastId + 1);  // Increment the highest ID by 1
+        setNextBookId(`book${lastId + 1}`);
       } else {
-        setNextBookId(1);  // If no books exist, start with 1
+        setNextBookId("book1");
       }
     } catch (error) {
-      console.error("Error fetching next book ID:", error);
-      setNextBookId(1);  // Default to 1 if there's an error
+      console.error("Greška pri dohvaćanju ID-a knjige:", error);
     }
   };
 
-  // Check if the author already exists in Firestore
+
+  const fetchNextAuthorId = async () => {
+    try {
+      const authorsRef = collection(firestore, "authors");
+      const q = query(authorsRef, orderBy("id", "desc"));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const lastAuthor = querySnapshot.docs[0].data();
+        const lastId = parseInt(lastAuthor.id.replace("author", ""), 10);
+        setNextAuthorId(`author${lastId + 1}`);
+      } else {
+        setNextAuthorId("author1");
+      }
+    } catch (error) {
+      console.error("Greška pri dohvaćanju ID-a autora:", error);
+    }
+  };
+
+
   const checkAuthorExists = async (authorName) => {
     const authorsRef = collection(firestore, "authors");
     const q = query(authorsRef, where("name", "==", authorName));
     const querySnapshot = await getDocs(q);
-
     return !querySnapshot.empty;
   };
 
-  // Add a new author to Firestore
-  const addAuthor = async (authorName) => {
+
+  const addAuthor = async () => {
     try {
-      const authorRef = doc(firestore, "authors", `author${nextAuthorId}`);
+      const authorRef = doc(firestore, "authors", nextAuthorId);
       await setDoc(authorRef, {
-        id: `author${nextAuthorId}`,
-        name: authorName,
-        bio: "",  // Optional: Can be modified later
-      });
-      Toast.show({
-        type: "success",
-        text1: "Success",
-        text2: "Author added successfully!",
+        id: nextAuthorId,
+        name: author,
+        bio: "",
       });
     } catch (error) {
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "Failed to add author. Please try again.",
-      });
-      console.error("Error adding author:", error);
+      console.error("Greška pri dodavanju autora:", error);
+      throw error;
     }
   };
 
-  // Add a new book to Firestore
+const uploadImage = async (imageUri, bookId) => {
+  try {
+    const fileName = `cover_images/${bookId}_${Date.now()}.jpg`;
+    const response = await fetch(imageUri);
+    const file = await response.blob();
+
+    const { data, error } = await supabase.storage
+      .from("book-images")
+      .upload(fileName, file, {
+        contentType: "image/jpeg",
+      });
+
+    if (error) throw error;
+
+    return supabase.storage.from("book-images").getPublicUrl(data.path).data.publicUrl;
+  } catch (error) {
+    console.error("Greška pri uploadu slike:", error);
+    throw error;
+  }
+};
+
   const handleAddBook = async () => {
-    if (!naslovKnjige || !noviAutor || !zanrKnjige || !brojStranica) {
+    if (!title || !author || !pageCount || !genre) {
       Toast.show({
         type: "error",
-        position: "bottom",
-        text1: "Error",
-        text2: "Please fill in all fields.",
+        text1: "Greška",
+        text2: "Molimo popunite sva polja.",
       });
       return;
     }
 
-    try {
-      let authorToSave = noviAutor;
+    const authorExists = await checkAuthorExists(author);
+    if (!authorExists) await addAuthor();
 
-      // Check if the author already exists in the database
-      const authorExists = await checkAuthorExists(noviAutor);
-      if (!authorExists) {
-        // If the author doesn't exist, add them to Firestore
-        await addAuthor(noviAutor);
-        authorToSave = noviAutor;
+    try {
+      let imageUrl = "";
+      if (coverImageUrl) {
+        imageUrl = await uploadImage(coverImageUrl, nextBookId);
       }
 
-      // Add the book to Firestore
-      await setDoc(doc(firestore, "books", `book${nextBookId}`), {
-        id: `book${nextBookId}`,
-        title: naslovKnjige,
-        author: authorToSave,
-        genre: zanrKnjige,
-        pageCount: brojStranica,
-        coverImage: coverImage || "",
+      const bookRef = doc(firestore, "books", nextBookId);
+      await setDoc(bookRef, {
+        id: nextBookId,
+        title,
+        author,
+        pageCount,
+        genre,
+        coverImage: imageUrl,
+        addedBy: user?.name || "Nepoznati korisnik",
+        createdAt: new Date(),
       });
 
       Toast.show({
         type: "success",
-        position: "bottom",
-        text1: "Success",
-        text2: "Book added successfully.",
+        text1: "Uspjeh",
+        text2: "Knjiga je uspješno dodana!",
       });
 
-      navigation.goBack();
+      setTitle("");
+      setAuthor("");
+      setPageCount("");
+      setGenre("");
+      setCoverImageUrl(null);
+      fetchNextBookId();
     } catch (error) {
-      console.error("Error adding book:", error);
       Toast.show({
         type: "error",
-        position: "bottom",
-        text1: "Error",
-        text2: "Failed to add book. Please try again.",
+        text1: "Greška",
+        text2: "Dodavanje knjige nije uspjelo.",
       });
     }
   };
 
-  // Handle image upload for cover image
   const handleImageUpload = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissionResult.granted === false) {
       Toast.show({
         type: "error",
         position: "bottom",
-        text1: "Error",
-        text2: "You must grant access to the gallery.",
+        text1: "Greška",
+        text2: "Morate omogućiti pristup galeriji.",
       });
       return;
     }
@@ -169,140 +172,98 @@ export default function DodajKnjigu({ navigation }) {
 
     if (!pickerResult.canceled) {
       const selectedImage = pickerResult.assets[0];
-      const { uri, fileName, type } = selectedImage;
-
-      try {
-        const fileBlob = await fetch(uri).then((res) => res.blob());
-
-        const { data, error } = await supabase.storage
-          .from("book-images")
-          .upload(`cover_images/${Date.now()}_${fileName}`, fileBlob, {
-            contentType: type,
-          });
-
-        if (error) throw error;
-
-        const publicUrl = supabase.storage
-          .from("book-images")
-          .getPublicUrl(data.path).data.publicUrl;
-
-        setCoverImage(publicUrl);
-        Toast.show({
-          type: "success",
-          position: "bottom",
-          text1: "Success",
-          text2: "Image successfully uploaded.",
-        });
-      } catch (uploadError) {
-        console.error("Error uploading image:", uploadError);
-        Toast.show({
-          type: "error",
-          position: "bottom",
-          text1: "Error",
-          text2: "Failed to upload image.",
-        });
-      }
+      const { uri } = selectedImage;
+      setCoverImageUrl(uri);
     }
   };
 
+  useEffect(() => {
+    fetchNextBookId();
+    fetchNextAuthorId();
+  }, []);
+
   return (
     <PageDesign showCentralCircle={false}>
-      <View style={styles.container}>
+      <View style={styles.viewstyle}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <TextInput
             style={styles.input}
-            placeholder="Naziv"
-            value={naslovKnjige}
-            onChangeText={(text) => setNaslovKnjige(text)}
+            placeholder="Unesite ime knjige"
+            value={title}
+            onChangeText={setTitle}
           />
           <TextInput
             style={styles.input}
-            placeholder="Autor"
-            value={noviAutor}
-            onChangeText={(text) => setNoviAutor(text)}
+            placeholder="Unesite ime pisca"
+            value={author}
+            onChangeText={setAuthor}
           />
           <TextInput
             style={styles.input}
-            placeholder="Žanr knjige"
-            value={zanrKnjige}
-            onChangeText={(text) => setZanrKnjige(text)}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Broj stranica"
-            value={brojStranica}
+            placeholder="Unesite broj stranica"
             keyboardType="numeric"
-            onChangeText={(text) => setBrojStranica(text)}
+            value={pageCount}
+            onChangeText={setPageCount}
           />
-
-          <View style={styles.imagePlaceholder}>
-            {coverImage ? (
-              <Image source={{ uri: coverImage }} style={styles.image} />
-            ) : (
-              <Ionicons name="image-outline" size={50} color="black" />
-            )}
-          </View>
-
-          <TouchableOpacity style={styles.button} onPress={handleImageUpload}>
-            <Text style={styles.buttonText}>Dodaj sliku</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Unesite žanr knjige"
+            value={genre}
+            onChangeText={setGenre}
+          />
+          <TouchableOpacity style={styles.imageButton} onPress={handleImageUpload}>
+            <Text style={styles.buttonText}>Odaberite sliku</Text>
           </TouchableOpacity>
-
+          {coverImageUrl && <Image source={{ uri: coverImageUrl }} style={styles.coverImage} />}
           <TouchableOpacity style={styles.button} onPress={handleAddBook}>
             <Text style={styles.buttonText}>Dodaj knjigu</Text>
           </TouchableOpacity>
         </ScrollView>
       </View>
-
-      <Toast ref={(ref) => Toast.setRef(ref)} />
+      <Toast />
     </PageDesign>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  
   viewstyle: {
     flex: 1,
-    marginTop: '10%',
-    justifyContent: 'center',
-    alignContent: "center",
+    marginTop: "10%",
     alignItems: "center",
   },
   scrollContainer: {
-    justifyContent: 'center',
-    alignItems:'center',
+    alignItems: "center",
   },
   input: {
-    width: "95%",
-    marginTop: 20,
-    height: 45,
-    borderWidth: 2,
+    width: "90%",
+    marginVertical: 10,
+    height: 50,
+    borderWidth: 1,
     borderColor: "#A889E6",
     borderRadius: 8,
     paddingHorizontal: 10,
     backgroundColor: "#fff",
-    fontSize: 16,
   },
   imageButton: {
-    marginTop: 30,
+    marginTop: 20,
     width: "80%",
     height: 50,
-    borderRadius: 8,
     backgroundColor: "#6c4255",
     justifyContent: "center",
     alignItems: "center",
+    borderRadius: 8,
   },
   button: {
-    marginTop: 30,
+    marginTop: 20,
     width: "80%",
     height: 50,
-    borderRadius: 8,
     backgroundColor: "#A889E6",
     justifyContent: "center",
     alignItems: "center",
+    borderRadius: 8,
   },
   buttonText: {
     color: "#fff",
-    fontSize: 16,
     fontWeight: "bold",
   },
   coverImage: {
@@ -312,3 +273,5 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
 });
+
+export default DodajKnjigu;

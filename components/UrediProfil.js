@@ -225,17 +225,17 @@ export default function UrediProfil() {
   )}
 </View>
 
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText} onPress={setProfilePicture}>Postavi profilnu fotografiju</Text>
-          </TouchableOpacity>
+{showProfile && (
+  <View>
+    <TouchableOpacity style={styles.button}>
+      <Text style={styles.buttonText} onPress={setProfilePicture}>Postavi profilnu fotografiju</Text>
+    </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText} onPress={handleSaveProfile}>Spremi fotografiju</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={[styles.button, { marginTop: 10 }]}>
-            <Text style={styles.buttonText} onPress={deleteProfilePicture}>Ukloni fotografiju</Text>
-          </TouchableOpacity>
+    <TouchableOpacity style={[styles.button, { marginTop: 10 }]} onPress={deleteProfilePicture}>
+      <Text style={styles.buttonText}>Ukloni fotografiju</Text>
+    </TouchableOpacity>
+  </View>
+)}
 
           {showProfile ? (
             <View>
