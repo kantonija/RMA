@@ -11,7 +11,7 @@ export default function LoginButton ({title, onPress}) {
 
 const styles = StyleSheet.create({
     button: {
-      width: '25%', 
+      width: '29%', 
       maxWidth: 150, 
       height: 35,
       borderRadius: 8,

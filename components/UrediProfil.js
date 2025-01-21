@@ -11,7 +11,6 @@ import Toast from 'react-native-toast-message';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../supabaseClient';
 import { Alert } from "react-native";
-import * as FileSystem from 'expo-file-system';
 import { Image } from 'react-native';
 
 const { width } = Dimensions.get("window");
@@ -106,6 +105,38 @@ export default function UrediProfil() {
     }
   };
 
+  const deleteProfilePicture = async () => {
+    try {
+      const userId = auth.currentUser.uid;
+      const fileName = `${userId}-${Date.now()}.jpg`;
+      const { error } = await supabase.storage
+        .from("usersProfilePictures")
+        .remove([fileName]);
+      if (error) {
+        console.error("Error deleting profile picture:", error);
+        Toast.show({
+          type: 'error',
+          text1: 'Greška',
+          text2: 'Došlo je do greške pri brisanju profila.',
+        });
+      } else {
+        setProfile((prev) => ({ ...prev, profileImage: '' }));
+        Toast.show({
+          type: 'success',
+          text1: 'Uspjeh',
+          text2: 'Vaš profilna fotografija je uspješno obrisana!',
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting profile picture:", error);
+      Toast.show({
+        type: 'error',
+        text1: 'Greška',
+        text2: 'Došlo je do greške pri brisanju profila.',
+      });
+    }
+  };
+
   const setProfilePicture = async () => {
     const userId = auth.currentUser.uid;
     console.log(userId);
@@ -190,7 +221,7 @@ export default function UrediProfil() {
       style={{ width: 120, height: 120, borderRadius: 100 }}
     />
   ) : (
-    <Text style={styles.avatarPlaceholder}>avatar</Text>
+    <Text style={styles.avatarPlaceholder}>No Image</Text>
   )}
 </View>
 
@@ -203,7 +234,7 @@ export default function UrediProfil() {
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.button, { marginTop: 10 }]}>
-            <Text style={styles.buttonText}>Ukloni fotografiju</Text>
+            <Text style={styles.buttonText} onPress={deleteProfilePicture}>Ukloni fotografiju</Text>
           </TouchableOpacity>
 
           {showProfile ? (
@@ -232,9 +263,12 @@ export default function UrediProfil() {
             </View>
           ) : (
             <View>
-              <Text style={styles.favourites}><b> Najdraža knjiga: </b> {najdrazaKnjiga}</Text>
-              <Text style={styles.favourites}><b> Najdraži pisac: </b> {najdraziPisac}</Text>
-              <Text style={styles.favourites}><b> Najdraži žanr: </b> {najdraziZanr}</Text>
+              <Text style={styles.favourites}><b> Najdraža knjiga: </b>
+              <br /> {najdrazaKnjiga}</Text>
+              <Text style={styles.favourites}><b> Najdraži pisac: </b> 
+              <br /> {najdraziPisac}</Text>
+              <Text style={styles.favourites}><b> Najdraži žanr: </b> 
+              <br /> {najdraziZanr}</Text>
             </View>
           )}
 
@@ -289,7 +323,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: 'center',
     marginBottom: 10,
-    width:'70%',
+    width:'90%',
   },
   buttonText: {
     color: "#fff",

@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   info: {
     fontSize: 20,
     marginBottom: 20,
-    color: '#6b4c54',
+    color:'#63042F',
   },
   review: {
     fontSize: 20,
