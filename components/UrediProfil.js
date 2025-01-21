@@ -221,7 +221,7 @@ export default function UrediProfil() {
       style={{ width: 120, height: 120, borderRadius: 100 }}
     />
   ) : (
-    <Text style={styles.avatarPlaceholder}>avatar</Text>
+    <Text style={styles.avatarPlaceholder}>No Image</Text>
   )}
 </View>
 
@@ -263,9 +263,12 @@ export default function UrediProfil() {
             </View>
           ) : (
             <View>
-              <Text style={styles.favourites}><b> Najdraža knjiga: </b> {najdrazaKnjiga}</Text>
-              <Text style={styles.favourites}><b> Najdraži pisac: </b> {najdraziPisac}</Text>
-              <Text style={styles.favourites}><b> Najdraži žanr: </b> {najdraziZanr}</Text>
+              <Text style={styles.favourites}><b> Najdraža knjiga: </b>
+              <br /> {najdrazaKnjiga}</Text>
+              <Text style={styles.favourites}><b> Najdraži pisac: </b> 
+              <br /> {najdraziPisac}</Text>
+              <Text style={styles.favourites}><b> Najdraži žanr: </b> 
+              <br /> {najdraziZanr}</Text>
             </View>
           )}
 
@@ -320,7 +323,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: 'center',
     marginBottom: 10,
-    width:'70%',
+    width:'90%',
   },
   buttonText: {
     color: "#fff",
