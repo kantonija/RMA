@@ -147,18 +147,26 @@ export default function Profil() {
         </View>
 
         <View style={styles.bookContainer}>
-          {lastBook ? (
-            <View style={styles.bookCard}>
-              <Image
-                source={{ uri: lastBook.coverImage || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }}
-                style={styles.bookImagePlaceholder}
-              />
-              <Text style={styles.bookName}>Posljednje dodano:<br/><u>{lastBook.title}</u></Text>
-            </View>
-          ) : (
-            <Text style={styles.noBookText}>Nema zadnje dodane knjige.</Text>
-          )}
-        </View>
+  {lastBook ? (
+    <TouchableOpacity
+      onPress={() => navigation.navigate('Lista Knjiga', {
+        screen: 'DetaljiKnjige',
+        params: { bookId: lastBook.id }} )}
+      style={styles.bookCard}
+    >
+      <Image
+        source={{ uri: lastBook.coverImage || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }}
+        style={styles.bookImagePlaceholder}
+      />
+      <Text style={styles.bookName}>
+        Posljednje dodano:
+        <u>{lastBook.title}</u>
+      </Text>
+    </TouchableOpacity>
+  ) : (
+    <Text style={styles.noBookText}>Nema zadnje dodane knjige.</Text>
+  )}
+</View>
 
         <TouchableOpacity
           style={[styles.circleButton, styles.logoutButton]}
@@ -230,7 +238,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '500',
     color: '#6b4c54',
-    marginBottom: 5,
+    marginBottom: 10,
     textAlign: 'center',
   },
   noBookText: {
