@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
   coordinates: {
     color: "gray",
   },
-  buttonn: {
+  button: {
     width: '45%', 
       maxWidth: 150, 
       height: 35,
@@ -110,7 +110,11 @@ const styles = StyleSheet.create({
       backgroundColor: "#986BFC",
       justifyContent: "center",
       alignItems: "center",
-  }
+    },
+    buttonText: {
+      color: "#fff",
+      textAlign: "center",
+    },
 });
 
 export default PronadjiKnjiznicu;
