@@ -1,26 +1,66 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions, AppState } from 'react-native';
 import PageDesign from './ui/PageDesign';
-import { signOut } from 'firebase/auth';
-import { auth } from '../firebaseConfig';
+import { signOut, signInWithEmailAndPassword } from 'firebase/auth';
+import { auth, firestore } from '../firebaseConfig';
 import { AuthContext } from '../AuthContext';
 import { useNavigation } from '@react-navigation/native';
-import { firestore } from '../firebaseConfig';
-import { collection, doc, getDoc, getDocs, orderBy, query, limit, where, Timestamp, setDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, orderBy, query, limit, where, Timestamp, addDoc, updateDoc } from 'firebase/firestore';
 import Toast from 'react-native-toast-message';
 
 const { width } = Dimensions.get("window");
 
+let userActivityIntervalId = null;  
+let sessionStartTime = null;  
+
+const handleLogin = async (email, password) => {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    if (user) {
+      sessionStartTime = new Date();
+
+      userActivityIntervalId = setInterval(() => {
+        console.log("⏳ Aktivnost traje...");
+      }, 60000);
+    }
+  } catch (error) {
+    console.error("Error logging in:", error);
+  }
+};
+
+const logUserActivity = async (user) => {
+  if (!sessionStartTime || !user) return;
+
+  const sessionEndTime = new Date();
+  const duration = Math.round((sessionEndTime - sessionStartTime) / 60000);
+
+  try {
+    const userActivityRef = collection(firestore, `users/${user.uid}/userActivity`);
+    await addDoc(userActivityRef, {
+      loginTime: Timestamp.fromDate(sessionStartTime),
+      logoutTime: Timestamp.fromDate(sessionEndTime),
+      duration: duration
+    });
+
+    console.log(`Aktivnost spremljena: ${duration} min`);
+  } catch (error) {
+    console.error("Greška pri spremanju aktivnosti:", error);
+  }
+
+  sessionStartTime = null;
+};
+
 export default function Profil() {
   const { user, logout } = useContext(AuthContext);
   const navigation = useNavigation();
-
-  const [name, setName] = useState("");
   const [lastBook, setLastBook] = useState(null);
+  const [name, setName] = useState("");
   const [activityTime, setActivityTime] = useState(0);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+
     const fetchProfile = async () => {
       if (!user) {
         console.log("Korisnik nije prijavljen.");
@@ -69,58 +109,66 @@ export default function Profil() {
         setLastBook(null);
       }
     };
-    
-
     const fetchActivityTime = async () => {
       try {
-        if (!user) return;
+        const lastWeekDate = new Date();
+        lastWeekDate.setDate(lastWeekDate.getDate() - 7);
 
-        const currentDate = new Date();
-        const lastWeekDate = new Date(currentDate);
-        lastWeekDate.setDate(currentDate.getDate() - 7);
-
-        const activitiesRef = collection(firestore, 'activities');
-        const q = query(
-          activitiesRef,
-          where('userId', '==', user.uid),
-          where('startTime', '>=', Timestamp.fromDate(lastWeekDate)),
-          orderBy('startTime')
-        );
+        const activitiesRef = collection(firestore, `users/${user.uid}/userActivity`);
+        const q = query(activitiesRef, where('loginTime', '>=', Timestamp.fromDate(lastWeekDate)));
         const querySnapshot = await getDocs(q);
 
-        if (querySnapshot.empty) {
-          console.log('Nema aktivnosti u posljednjih 7 dana.');
-          setActivityTime(0);
-          return;
-        }
-
-        let totalTimeInMinutes = 0;
+        let totalTime = 0;
         querySnapshot.forEach(doc => {
-          const activity = doc.data();
-          if (activity.startTime && activity.endTime) {
-            const startTime = activity.startTime.toDate();
-            const endTime = activity.endTime.toDate();
-            const duration = (endTime - startTime) / (1000 * 60);
-            totalTimeInMinutes += duration;
-          } else {
-            console.log('Nema startTime ili endTime za aktivnost:', doc.id);
-          }
+          totalTime += doc.data().duration || 0;
         });
 
-        setActivityTime(Math.round(totalTimeInMinutes));
+        setActivityTime(totalTime);
       } catch (error) {
-        console.error('Error fetching activity time:', error);
+        console.error("Error fetching activity time:", error);
       }
     };
 
     fetchProfile();
-    fetchLastBook();
     fetchActivityTime();
+    fetchLastBook();
+
+
+    const handleAppStateChange = async (nextAppState) => {
+      if (nextAppState === 'active') {
+        console.log("Korisnik se vratio u aplikaciju");
+        sessionStartTime = new Date();
+
+        if (!userActivityIntervalId) {
+          userActivityIntervalId = setInterval(() => {
+            console.log("⏳ Aktivnost traje...");
+          }, 60000);
+        }
+      } else if (nextAppState.match(/inactive|background/)) {
+        console.log("Korisnik napustio aplikaciju");
+        await logUserActivity(user);
+
+        if (userActivityIntervalId) {
+          clearInterval(userActivityIntervalId);
+          userActivityIntervalId = null;
+        }
+      }
+    };
+
+    AppState.addEventListener("change", handleAppStateChange);
+
+    return () => {
+      if (userActivityIntervalId) clearInterval(userActivityIntervalId);
+    };
+  
   }, [user]);
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      if (userActivityIntervalId) {
+        clearInterval(userActivityIntervalId);
+      }
       logout();
       navigation.navigate('Login');
       Toast.show({
@@ -128,8 +176,10 @@ export default function Profil() {
         text1: 'Odjava uspešna',
         text2: 'Uspešno ste se odjavili.',
       });
+      
+      console.log("Korisnik odjavljen");
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Error logging out:", error);
       Toast.show({
         type: 'error',
         text1: 'Greška',
@@ -137,7 +187,8 @@ export default function Profil() {
       });
     }
   };
-
+  
+  
   return (
     <PageDesign>
       <View style={styles.container}>
@@ -145,37 +196,25 @@ export default function Profil() {
           <Text style={styles.greetingText}>Pozdrav, {name}</Text>
           <Text style={styles.infoText}>U proteklom tjednu bili ste aktivni {activityTime} minuta!</Text>
         </View>
-
         <View style={styles.bookContainer}>
-  {lastBook ? (
-    <TouchableOpacity
-      onPress={() => navigation.navigate('Lista Knjiga', {
-        screen: 'DetaljiKnjige',
-        params: { bookId: lastBook.id }} )}
-      style={styles.bookCard}
-    >
-      <Image
-        source={{ uri: lastBook.coverImage || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }}
-        style={styles.bookImagePlaceholder}
-      />
-      <Text style={styles.bookName}>
-        Posljednje dodano:
-        <u>{lastBook.title}</u>
-      </Text>
-    </TouchableOpacity>
-  ) : (
-    <Text style={styles.noBookText}>Nema zadnje dodane knjige.</Text>
-  )}
-</View>
-
-        <TouchableOpacity
-          style={[styles.circleButton, styles.logoutButton]}
-          onPress={handleLogout}>
+          {lastBook ? (
+            <View style={styles.bookCard}>
+              <Image
+                source={{ uri: lastBook.coverImage || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }}
+                style={styles.bookImagePlaceholder}
+              />
+              <Text style={styles.bookName}>Posljednje dodano:<br/><u>{lastBook.title}</u></Text>
+            </View>
+          ) : (
+            <Text style={styles.noBookText}>Nema zadnje dodane knjige.</Text>
+          )}
+        </View>
+        
+        <TouchableOpacity style={[styles.circleButton, styles.logoutButton]} onPress={handleLogout}>
           <Text style={styles.buttonText}>Odjavi se</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.circleButton, styles.editProfileButton]}
-          onPress={() => navigation.navigate('UrediProfil')}>
+
+        <TouchableOpacity style={[styles.circleButton, styles.editProfileButton]} onPress={() => navigation.navigate('UrediProfil')}>
           <Text style={styles.buttonText}>Uredi profil</Text>
         </TouchableOpacity>
       </View>
@@ -192,8 +231,8 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     position: 'absolute',
-    top: width > 600 ? 15 : 10,
-    left: width > 600 ? -760 : -190,
+    top: width > 600 ? 15 : 7,
+    left: width > 600 ? -760 : -170,
   },
   greetingText: {
     fontSize: 26,
@@ -209,7 +248,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'absolute',
-    top: 110,
+    top: 130,
     width: '90%',
   },
   bookCard: {
@@ -275,4 +314,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-
