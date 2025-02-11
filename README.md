@@ -24,7 +24,7 @@ Book Tracker App je mobilna aplikacija koja omogućuje korisnicima praćenje pro
    ```sh
    git clone https://github.com/kantonija/Book-tracker-app.git
    cd Book-tracker-app
-
+    ```
 
 2. Instaliraj potrebne pakete:
     ```sh
